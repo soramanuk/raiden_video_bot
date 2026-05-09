@@ -541,6 +541,14 @@ async def do_render(job_id: str, req: RenderRequest):
             audio_path = slide_dir / "audio.mp3"
             await gen_voiceover(slide.script, req.voice, str(audio_path))
 
+            # Validasi file audio — gTTS kadang diam-diam gagal
+            if not audio_path.exists() or audio_path.stat().st_size < 100:
+                raise FileNotFoundError(
+                    f"Slide {i+1}: audio gagal dibuat — "
+                    f"file={'ada' if audio_path.exists() else 'tidak ada'}, "
+                    f"size={audio_path.stat().st_size if audio_path.exists() else 0} bytes"
+                )
+
             # Download + validasi gambar (dengan retry otomatis)
             img_path = slide_dir / "image.jpg"
             prompt   = f"{slide.image_prompt}, {req.style} style"
@@ -601,6 +609,10 @@ async def do_render(job_id: str, req: RenderRequest):
         # Cleanup setelah setiap render selesai — jaga storage tetap bersih
         run_cleanup()
     except Exception as e:
+        import traceback
+        logging.getLogger("render").error(
+            f"do_render [{job_id}] error: {e}\n{traceback.format_exc()}"
+        )
         set_job_status(job_id, "error", message=str(e))
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
