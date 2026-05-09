@@ -720,9 +720,8 @@ async def download_image(prompt: str, width: int, height: int, out_path: str):
     keywords = "+".join(keywords.split()[:5])
 
     providers = [
-        f"https://picsum.photos/{width}/{height}?random={uuid.uuid4().int % 9999}",
-        f"https://loremflickr.com/{width}/{height}/{keywords.replace('+', ',')}",
-        f"https://picsum.photos/{width}/{height}?random={uuid.uuid4().int % 99999}",
+        f"https://placehold.co/{width}x{height}/1a1a2e/ffffff?text={keywords.replace('+', '+')[:20]}",
+        f"https://via.placeholder.com/{width}x{height}/1a1a2e/ffffff?text=Video",
     ]
 
     last_error = ""
