@@ -61,16 +61,48 @@ async def upload_to_telegram(
     # ── Pakai file lokal yang sudah di-download ───────────────────────────
     if local_path and Path(local_path).exists():
         logger.info(f"Telegram: pakai file lokal: {local_path}")
+
+        # Cek ukuran — Telegram bot max 50MB
+        file_size_mb = Path(local_path).stat().st_size / 1024 / 1024
+        if file_size_mb > 49:
+            logger.warning(
+                f"File {file_size_mb:.1f} MB melebihi batas 50MB Telegram — "
+                f"upload mungkin gagal. Pertimbangkan kompres video."
+            )
+
+        # Caption max 1024 karakter untuk Telegram
+        safe_caption = caption[:1020] if len(caption) > 1024 else caption
+
         try:
             async with httpx.AsyncClient(timeout=300) as client:
                 with open(local_path, "rb") as f:
+                    # Gunakan sendVideo (bukan sendDocument) agar Telegram
+                    # bisa streaming dan preview langsung di chat
                     r = await client.post(
-                        f"{api_url}/sendDocument",
-                        data={"chat_id": channel_id, "caption": caption, "parse_mode": "HTML"},
-                        files={"document": (f"{title}.mp4", f, "video/mp4")},
+                        f"{api_url}/sendVideo",
+                        data={
+                            "chat_id": channel_id,
+                            "caption": safe_caption,
+                            "parse_mode": "HTML",
+                            "supports_streaming": "true",
+                        },
+                        files={"video": (f"{title}.mp4", f, "video/mp4")},
                     )
+                if r.status_code != 200 or not r.json().get("ok"):
+                    # Fallback ke sendDocument jika sendVideo gagal
+                    logger.warning(f"sendVideo gagal ({r.status_code}), fallback ke sendDocument")
+                    with open(local_path, "rb") as f2:
+                        r = await client.post(
+                            f"{api_url}/sendDocument",
+                            data={
+                                "chat_id": channel_id,
+                                "caption": safe_caption,
+                                "parse_mode": "HTML",
+                            },
+                            files={"document": (f"{title}.mp4", f2, "video/mp4")},
+                        )
                 r.raise_for_status()
-                result = r.json()["result"]
+                result = r.json().get("result", {})
             logger.info(f"Upload Telegram berhasil via file lokal: {title}")
             return {
                 "platform": "telegram",
@@ -360,19 +392,31 @@ async def generate_thumbnail(
         logger.warning("Tidak ada font TTF ditemukan — drawtext mungkin gagal di container tanpa fontconfig")
         font_arg = ""
 
-    filters = [
-        f"scale={width}:{height}:force_original_aspect_ratio=increase",
-        f"crop={width}:{height}:(iw-{width})/2:(ih-{height})/2",
-        f"drawbox=x=0:y={box_y}:w={width}:h=180:color=black@0.55:t=fill",
-        (
-            f"drawtext=text='{safe_title}'"
-            f"{font_arg}"
-            f":fontsize=52:fontcolor=white"
-            f":x=(w-text_w)/2:y={height - 110}"
-            f":shadowcolor=black@0.8:shadowx=3:shadowy=3"
-        ),
-    ]
-    filter_str = ",".join(filters)
+    if font_path:
+        # Ada font — buat thumbnail dengan teks overlay
+        filters = [
+            f"scale={width}:{height}:force_original_aspect_ratio=increase",
+            f"crop={width}:{height}:(iw-{width})/2:(ih-{height})/2",
+            f"drawbox=x=0:y={box_y}:w={width}:h=180:color=black@0.55:t=fill",
+            (
+                f"drawtext=text='{safe_title}'"
+                f"{font_arg}"
+                f":fontsize=52:fontcolor=white"
+                f":x=(w-text_w)/2:y={height - 110}"
+                f":shadowcolor=black@0.8:shadowx=3:shadowy=3"
+            ),
+        ]
+        filter_str = ",".join(filters)
+    else:
+        # Tidak ada font — buat thumbnail polos tanpa teks (crop + resize saja)
+        # Ini aman di semua container tanpa fontconfig
+        logger.info("Font tidak ditemukan — buat thumbnail tanpa overlay teks")
+        filters = [
+            f"scale={width}:{height}:force_original_aspect_ratio=increase",
+            f"crop={width}:{height}:(iw-{width})/2:(ih-{height})/2",
+            f"drawbox=x=0:y={box_y}:w={width}:h=8:color=#FF6B35@0.9:t=fill",
+        ]
+        filter_str = ",".join(filters)
 
     cmd = [
         _FFMPEG, "-y",

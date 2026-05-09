@@ -17,7 +17,7 @@ Supported AI Providers:
   - Mistral (mistral-large-latest, open-mixtral-8x7b)
 """
 
-import os, uuid, asyncio, json, tempfile, shutil
+import os, uuid, asyncio, json, tempfile, shutil, re, re
 from pathlib import Path
 from typing import Optional, Literal
 import httpx
@@ -710,78 +710,52 @@ def _is_valid_image(path: str) -> tuple[bool, str]:
 
 async def download_image(prompt: str, width: int, height: int, out_path: str):
     """
-    Download gambar dari Pollinations dengan retry otomatis.
-
-    Strategi:
-      • Coba IMAGE_DOWNLOAD_RETRIES kali dengan seed berbeda tiap percobaan
-      • Validasi file hasil download (ukuran + magic bytes)
-      • Jika semua retry gagal, tulis gambar fallback abu-abu dan log warning
-        supaya pipeline tetap jalan (slide bisa berlanjut tanpa crash)
+    Download gambar dengan multi-provider fallback:
+      1. Unsplash Source (gratis, tanpa API key)
+      2. Picsum Photos (tidak pernah 429)
+      3. Fallback abu-abu
     """
-    import urllib.parse
+    keywords = prompt.split(",")[0].strip()
+    keywords = re.sub(r"[^a-zA-Z0-9 ]", "", keywords)
+    keywords = "+".join(keywords.split()[:5])
 
-    encoded = urllib.parse.quote(prompt)
+    providers = [
+        f"https://source.unsplash.com/{width}x{height}/?{keywords}",
+        f"https://picsum.photos/{width}/{height}?random={uuid.uuid4().int % 9999}",
+    ]
 
     last_error = ""
-    for attempt in range(1, IMAGE_DOWNLOAD_RETRIES + 1):
-        seed = uuid.uuid4().int % 99999
-        url  = (
-            f"https://image.pollinations.ai/prompt/{encoded}"
-            f"?width={width}&height={height}&nologo=true&seed={seed}"
-        )
+    for attempt, url in enumerate(providers, 1):
         try:
-            async with httpx.AsyncClient(timeout=IMAGE_DOWNLOAD_TIMEOUT) as c:
-                r = await c.get(url, follow_redirects=True)
+            _img_logger.info(f"[attempt {attempt}/{len(providers)}] Download: {url[:80]}")
+            async with httpx.AsyncClient(timeout=IMAGE_DOWNLOAD_TIMEOUT, follow_redirects=True) as c:
+                r = await c.get(url)
 
-            # Cek HTTP status
             if r.status_code != 200:
                 last_error = f"HTTP {r.status_code}"
-                _img_logger.warning(
-                    f"[attempt {attempt}/{IMAGE_DOWNLOAD_RETRIES}] {last_error} — retrying..."
-                )
-                await asyncio.sleep(IMAGE_RETRY_DELAY * attempt)
+                _img_logger.warning(f"[attempt {attempt}] {last_error} — coba provider berikutnya")
                 continue
 
-            # Tulis ke file sementara dulu, baru validasi
             with open(out_path, "wb") as f:
                 f.write(r.content)
 
             valid, reason = _is_valid_image(out_path)
             if valid:
-                if attempt > 1:
-                    _img_logger.info(
-                        f"Gambar OK setelah {attempt} percobaan ({reason}, "
-                        f"{Path(out_path).stat().st_size // 1024} KB)"
-                    )
-                return  # sukses
+                _img_logger.info(f"Gambar OK provider {attempt} ({reason}, {Path(out_path).stat().st_size // 1024} KB)")
+                return
 
-            # File ada tapi bukan gambar valid
             last_error = f"validasi gagal: {reason}"
-            _img_logger.warning(
-                f"[attempt {attempt}/{IMAGE_DOWNLOAD_RETRIES}] {last_error} — retrying..."
-            )
-            await asyncio.sleep(IMAGE_RETRY_DELAY * attempt)
+            _img_logger.warning(f"[attempt {attempt}] {last_error} — coba provider berikutnya")
 
         except (httpx.TimeoutException, httpx.ConnectError, httpx.ReadError) as exc:
             last_error = type(exc).__name__
-            _img_logger.warning(
-                f"[attempt {attempt}/{IMAGE_DOWNLOAD_RETRIES}] Network error: {exc} — retrying..."
-            )
-            await asyncio.sleep(IMAGE_RETRY_DELAY * attempt)
+            _img_logger.warning(f"[attempt {attempt}] Network error: {exc}")
 
         except Exception as exc:
             last_error = str(exc)
-            _img_logger.error(
-                f"[attempt {attempt}/{IMAGE_DOWNLOAD_RETRIES}] Unexpected error: {exc}",
-                exc_info=True,
-            )
-            await asyncio.sleep(IMAGE_RETRY_DELAY * attempt)
+            _img_logger.error(f"[attempt {attempt}] Error: {exc}", exc_info=True)
 
-    # Semua retry habis — pakai fallback supaya pipeline tidak crash
-    _img_logger.error(
-        f"Semua {IMAGE_DOWNLOAD_RETRIES} percobaan gagal (error terakhir: {last_error}). "
-        f"Menggunakan gambar fallback abu-abu untuk: {prompt[:60]}"
-    )
+    _img_logger.error(f"Semua provider gagal ({last_error}). Pakai fallback untuk: {prompt[:60]}")
     with open(out_path, "wb") as f:
         f.write(_FALLBACK_JPEG)
 
@@ -813,7 +787,9 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
                 "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac", "-b:a", "128k",
                 "-pix_fmt", "yuv420p",
                 "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1",
-                "-t", str(s["duration"]), seg,
+                "-af", "apad",
+                "-t", str(s["duration"]),
+                seg,
             ]
             proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
             _, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
