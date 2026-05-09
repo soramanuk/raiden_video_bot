@@ -109,6 +109,19 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
             "1:1":  (720, 720),
         }.get(ratio, (1280, 720))
 
+        # ── Notifikasi mulai proses ──────────────────────────────────────────
+        try:
+            await notifier.notify_start(
+                slot       = slot,
+                title      = topic["title"],
+                topic      = topic.get("topic", topic["title"]),
+                model      = model_used,
+                num_slides = len(slides),
+                ratio      = ratio,
+            )
+        except Exception as notif_err:
+            logger.warning(f"[{slot.upper()}] notify_start gagal (non-fatal): {notif_err}")
+
         # ── Step 3: Render video (dengan retry) ─────────────────────────────
         # FIX #7: retry untuk step ini juga
         logger.info(f"[{slot.upper()}] Rendering video {width}x{height}...")

@@ -108,6 +108,44 @@ async def notify_startup():
     return await send(msg)
 
 
+async def notify_start(slot: str, title: str, topic: str, model: str, num_slides: int, ratio: str = "16:9"):
+    """Notifikasi saat pipeline mulai — lengkap dengan detail konten & estimasi durasi."""
+    tz_label   = os.getenv("TIMEZONE", "Asia/Jakarta")
+    waktu      = datetime.now().strftime(f"%d/%m/%Y %H:%M ({tz_label})")
+    slot_emoji = {"pagi": "🌅", "siang": "☀️", "malam": "🌙"}.get(slot, "🎬")
+
+    # Estimasi durasi berdasarkan jumlah slide:
+    # ~15 detik/slide (TTS + download gambar + encode) + 20 detik overhead
+    est_seconds = num_slides * 15 + 20
+    if est_seconds < 60:
+        est_str = f"~{est_seconds} detik"
+    else:
+        est_min = est_seconds // 60
+        est_sec = est_seconds % 60
+        est_str = f"~{est_min} menit {est_sec} detik" if est_sec else f"~{est_min} menit"
+
+    ratio_label = {
+        "16:9": "16:9 (Landscape 1280×720)",
+        "9:16": "9:16 (Portrait 720×1280)",
+        "1:1":  "1:1 (Square 720×720)",
+    }.get(ratio, ratio)
+
+    msg = (
+        f"⏳ <b>Sedang Membuat Video...</b>\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"{slot_emoji} <b>Slot:</b> {slot.capitalize()} ({waktu})\n"
+        f"📌 <b>Judul:</b> {title}\n"
+        f"📝 <b>Topik:</b> {topic}\n"
+        f"🤖 <b>Model AI:</b> {model}\n"
+        f"🎞️ <b>Slide:</b> {num_slides} slide\n"
+        f"📐 <b>Rasio:</b> {ratio_label}\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"⏱️ <b>Estimasi selesai:</b> {est_str}\n"
+        f"<i>Notifikasi berikutnya saat video selesai atau gagal.</i>"
+    )
+    return await send(msg)
+
+
 async def notify_upload_success(slot: str, title: str, platform: str, url: str = ""):
     """Notifikasi setelah berhasil upload ke platform."""
     platform_emoji = {
