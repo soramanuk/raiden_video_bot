@@ -1,0 +1,22 @@
+# Core API
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+aiofiles==23.2.1
+python-multipart==0.0.9
+
+# Video pipeline
+edge-tts==6.1.12
+httpx==0.27.0
+
+# AI Providers
+anthropic==0.28.0
+openai==1.30.0
+google-generativeai==0.7.0
+
+# Scheduler (BARU)
+apscheduler==3.10.4
+
+# YouTube upload (BARU - opsional, hanya perlu jika UPLOAD_TARGET=youtube)
+google-api-python-client==2.131.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0

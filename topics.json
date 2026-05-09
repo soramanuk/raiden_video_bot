@@ -1,0 +1,202 @@
+{
+  "_comment": "Daftar topik rotasi harian. Sistem akan otomatis memilih topik berdasarkan hari ke-N dan slot waktu.",
+  "_slots": "pagi=05:00 WIB | siang=12:00 WIB | malam=19:00 WIB",
+
+  "pagi": [
+    {
+      "title": "5 Kebiasaan Pagi yang Mengubah Hidupmu",
+      "topic": "kebiasaan produktif di pagi hari, bangun lebih awal, olahraga ringan, sarapan sehat",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["produktivitas", "lifestyle", "motivasi"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Rahasia Orang Sukses di Pagi Hari",
+      "topic": "rutinitas pagi para CEO dan orang sukses dunia, journaling, meditasi, cold shower",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["sukses", "motivasi", "lifestyle"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Sarapan Sehat Buat Tubuh Bertenaga",
+      "topic": "pilihan sarapan bergizi tinggi, makanan untuk energi pagi, hindari sarapan yang salah",
+      "style": "photorealistic",
+      "voice": "id-ID-GadisNeural",
+      "num_slides": 5,
+      "tags": ["kesehatan", "food", "lifestyle"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Tips Meditasi Pagi untuk Pikiran Jernih",
+      "topic": "teknik meditasi sederhana di pagi hari, manfaat mindfulness, cara mulai meditasi untuk pemula",
+      "style": "watercolor",
+      "voice": "id-ID-GadisNeural",
+      "num_slides": 6,
+      "tags": ["mindfulness", "kesehatan", "produktivitas"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Olahraga 10 Menit di Pagi Hari",
+      "topic": "gerakan olahraga ringan yang bisa dilakukan di rumah sebelum bekerja, peregangan, cardio singkat",
+      "style": "photorealistic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["olahraga", "kesehatan", "produktivitas"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Cara Bangkit dari Ranjang dengan Semangat",
+      "topic": "tips mengatasi malas bangun pagi, trick psikologis agar semangat, sleep hygiene yang benar",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 5,
+      "tags": ["motivasi", "lifestyle", "produktivitas"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Power Morning Routine dalam 30 Menit",
+      "topic": "rutinitas pagi efektif hanya 30 menit, prioritas kegiatan pagi, time blocking di pagi hari",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["produktivitas", "time management", "lifestyle"],
+      "ratio": "16:9"
+    }
+  ],
+
+  "siang": [
+    {
+      "title": "Fakta Menakjubkan Teknologi AI Terbaru",
+      "topic": "perkembangan kecerdasan buatan terkini, GPT, Gemini, Claude, AI generatif yang mengubah industri",
+      "style": "digital art",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["teknologi", "AI", "edukasi"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Fakta Unik Tentang Alam Semesta",
+      "topic": "fakta ilmiah menakjubkan tentang luar angkasa, lubang hitam, galaksi, bintang neutron",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["sains", "astronomi", "edukasi"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Sejarah Internet yang Mengubah Dunia",
+      "topic": "asal usul internet, ARPANET, penemuan World Wide Web, evolusi internet dari 1969 hingga sekarang",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["sejarah", "teknologi", "edukasi"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Misteri Laut Dalam yang Belum Terpecahkan",
+      "topic": "makhluk laut dalam yang aneh, zona hadal, Palung Mariana, fenomena bioluminescence",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["sains", "alam", "misteri"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Cara Otak Manusia Bekerja Saat Belajar",
+      "topic": "neurosains belajar, cara memori terbentuk, teknik belajar berdasarkan ilmu otak, spaced repetition",
+      "style": "digital art",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["sains", "edukasi", "otak"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "10 Inovasi Teknologi yang Akan Mengubah 2025",
+      "topic": "teknologi masa depan yang sedang berkembang: quantum computing, robotik, bioteknologi, energi terbarukan",
+      "style": "3d render",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["teknologi", "masa depan", "inovasi"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Fakta Mengejutkan Tentang Uang dan Ekonomi",
+      "topic": "fakta ekonomi yang jarang diketahui, sejarah uang, cara kerja sistem perbankan, inflasi",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["ekonomi", "finansial", "edukasi"],
+      "ratio": "16:9"
+    }
+  ],
+
+  "malam": [
+    {
+      "title": "Resep Makan Malam Sehat dalam 15 Menit",
+      "topic": "resep masakan cepat dan bergizi untuk makan malam, bahan sederhana, mudah dibuat",
+      "style": "photorealistic",
+      "voice": "id-ID-GadisNeural",
+      "num_slides": 6,
+      "tags": ["food", "resep", "lifestyle"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Tips Tidur Berkualitas untuk Istirahat Maksimal",
+      "topic": "cara meningkatkan kualitas tidur, sleep hygiene, suhu kamar ideal, ritme sirkadian",
+      "style": "watercolor",
+      "voice": "id-ID-GadisNeural",
+      "num_slides": 6,
+      "tags": ["kesehatan", "tidur", "lifestyle"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Cara Melepas Stres Setelah Kerja Seharian",
+      "topic": "teknik relaksasi malam hari, stretching, mandi air hangat, aromaterapi, journaling malam",
+      "style": "watercolor",
+      "voice": "id-ID-GadisNeural",
+      "num_slides": 6,
+      "tags": ["kesehatan", "wellness", "lifestyle"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Kebiasaan Malam yang Bikin Hidupmu Lebih Baik",
+      "topic": "rutinitas malam positif, refleksi harian, membaca buku, persiapan hari esok, digital detox",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["produktivitas", "lifestyle", "motivasi"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Mindfulness Malam: Lepaskan Semua Beban",
+      "topic": "teknik mindfulness dan meditasi sebelum tidur, body scan meditation, breathing exercise 4-7-8",
+      "style": "watercolor",
+      "voice": "id-ID-GadisNeural",
+      "num_slides": 5,
+      "tags": ["mindfulness", "kesehatan", "relaksasi"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Review Harian: Cara Orang Sukses Evaluasi Hari",
+      "topic": "metode daily review, menulis jurnal refleksi, lesson learned, gratitude practice sebelum tidur",
+      "style": "cinematic",
+      "voice": "id-ID-ArdiNeural",
+      "num_slides": 6,
+      "tags": ["produktivitas", "sukses", "motivasi"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Cemilan Malam yang Sehat dan Tidak Bikin Gemuk",
+      "topic": "pilihan camilan rendah kalori untuk malam hari, buah-buahan, kacang-kacangan, yogurt, dark chocolate",
+      "style": "photorealistic",
+      "voice": "id-ID-GadisNeural",
+      "num_slides": 5,
+      "tags": ["food", "kesehatan", "diet"],
+      "ratio": "16:9"
+    }
+  ]
+}
