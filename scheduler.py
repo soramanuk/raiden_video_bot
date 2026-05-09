@@ -1,28 +1,25 @@
 """
 scheduler.py — Raiden Auto Video Maker: Core Scheduler
-Jadwalkan pembuatan & upload video otomatis 3x sehari tanpa interaksi user.
 
 Jadwal default (WIB / Asia/Jakarta):
   🌅 05:00 — slot pagi
   ☀️ 12:00 — slot siang
   🌙 19:00 — slot malam
 
-Dijalankan otomatis saat server FastAPI start (lihat main.py).
-
 ENV VARS:
   SCHEDULE_PAGI    = "5"   (jam, default 5 → 05:00 WIB)
   SCHEDULE_SIANG   = "12"  (jam, default 12 → 12:00 WIB)
   SCHEDULE_MALAM   = "19"  (jam, default 19 → 19:00 WIB)
-  DEFAULT_MODEL    = "gemini-2-flash"   (model hemat untuk auto-run)
+  DEFAULT_MODEL    = "gemini-2-flash"
   UPLOAD_TARGET    = "telegram" | "youtube" | "both" | "none"
   TIMEZONE         = "Asia/Jakarta"
-  SCHEDULER_ENABLED= "true" (set "false" untuk nonaktifkan)
+  SCHEDULER_ENABLED= "true"
 """
 
 import os
+import time
 import asyncio
 import logging
-import time
 import threading as _threading
 from datetime import datetime
 
@@ -40,41 +37,24 @@ logger = logging.getLogger(__name__)
 TIMEZONE          = os.getenv("TIMEZONE", "Asia/Jakarta")
 INTERNAL_API      = os.getenv("INTERNAL_API_BASE", "http://localhost:8000")
 SCHEDULER_ENABLED = os.getenv("SCHEDULER_ENABLED", "true").lower() == "true"
+HOUR_PAGI         = int(os.getenv("SCHEDULE_PAGI",  "5"))
+HOUR_SIANG        = int(os.getenv("SCHEDULE_SIANG", "12"))
+HOUR_MALAM        = int(os.getenv("SCHEDULE_MALAM", "19"))
 
-HOUR_PAGI   = int(os.getenv("SCHEDULE_PAGI",  "5"))
-HOUR_SIANG  = int(os.getenv("SCHEDULE_SIANG", "12"))
-HOUR_MALAM  = int(os.getenv("SCHEDULE_MALAM", "19"))
-
-# FIX #1: Jangan cache DEFAULT_MODEL di module-level.
-# Baca via fungsi helper agar override os.environ["DEFAULT_MODEL"] dari /auto-run
-# selalu terbaca fresh — termasuk oleh APScheduler yang memanggil run_full_pipeline langsung.
 def _get_default_model() -> str:
     return os.getenv("DEFAULT_MODEL", "gemini-2-flash")
 
-# Singleton scheduler
 _scheduler: AsyncIOScheduler | None = None
 
-# FIX #2: Pipeline lock dibuat di sini (module-level) agar melindungi baik
-# /auto-run maupun APScheduler yang memanggil run_full_pipeline() langsung.
-# main.py tidak perlu _active_slots-nya sendiri lagi untuk perlindungan scheduler.
 _active_slots: set = set()
 _active_slots_lock = _threading.Lock()
-
 
 # ─── Core Pipeline ────────────────────────────────────────────────────────────
 
 async def run_full_pipeline(slot: str, model_override: str | None = None):
-    """
-    Pipeline otomatis penuh untuk satu slot.
-    model_override: jika diisi (dari /auto-run), pakai model ini alih-alih DEFAULT_MODEL.
-    Tidak ada mutasi os.environ — aman untuk concurrent slot.
-    """
-    # ── Duplicate-run guard ──────────────────────────────────────────────────
     with _active_slots_lock:
         if slot in _active_slots:
-            logger.warning(
-                f"[{slot.upper()}] ⚠️  Pipeline sudah berjalan — skip (duplicate lock)."
-            )
+            logger.warning(f"[{slot.upper()}] ⚠️ Pipeline sudah berjalan — skip (duplicate lock).")
             return
         _active_slots.add(slot)
 
@@ -82,39 +62,35 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
     topic = None
 
     try:
-        # Step 1: Pilih topik
         model = model_override or _get_default_model()
         logger.info(f"[{slot.upper()}] ▶ Memulai pipeline otomatis (model: {model})...")
+
         topic = await topic_engine.get_topic(slot)
         logger.info(f"[{slot.upper()}] Topik: {topic['title']}")
 
-        # ── Step 2: Generate script (dengan retry) ───────────────────────────
-        # FIX #7: retry untuk step ini (contoh pola dari uploader.py)
+        # Step 2: Generate script
+        # FIX #3: retries=3, delay=30 untuk handle 429 Gemini dengan jeda lebih panjang
         script_data = await _call_with_retry(
             label=f"[{slot.upper()}] generate-script",
             coro_fn=lambda: _generate_script(topic, model, slot),
-            retries=2,
-            delay=5,
+            retries=3,
+            delay=30,
         )
-
         slides     = script_data["slides"]
         model_used = script_data.get("model_used", model)
         logger.info(f"[{slot.upper()}] Script OK — {len(slides)} slide, model: {model_used}")
 
-        # Log script lengkap ke Deploy Logs untuk review
         for i, slide in enumerate(slides, 1):
             logger.info(f"[{slot.upper()}] SLIDE {i}: {slide.get('script', '')[:200]}")
 
-        # Tentukan dimensi berdasarkan ratio
-        ratio  = topic.get("ratio", "16:9")
+        ratio = topic.get("ratio", "16:9")
         width, height = {
             "16:9": (1280, 720),
             "9:16": (720, 1280),
             "1:1":  (720, 720),
         }.get(ratio, (1280, 720))
 
-        # ── Step 3: Render video (dengan retry) ─────────────────────────────
-        # FIX #7: retry untuk step ini juga
+        # Step 3: Render video
         logger.info(f"[{slot.upper()}] Rendering video {width}x{height}...")
         job_id = await _call_with_retry(
             label=f"[{slot.upper()}] render-video",
@@ -124,13 +100,12 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
         )
         logger.info(f"[{slot.upper()}] Render job: {job_id}")
 
-        # ── Step 4: Poll langsung dari DB ────────────────────────────────────
-        # FIX #5: tidak lagi buka 120 koneksi HTTP — query DB in-process
+        # Step 4: Poll DB
         video_url, thumbnail_path = await _poll_job_db(job_id, slot)
         duration = time.time() - start_time
         logger.info(f"[{slot.upper()}] ✅ Render selesai dalam {duration:.0f}s — {video_url}")
 
-        # ── Step 5: Upload ke platform ───────────────────────────────────────
+        # Step 5: Upload
         upload_results = await uploader.upload(
             video_url      = video_url,
             title          = topic["title"],
@@ -141,16 +116,14 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
         )
         logger.info(f"[{slot.upper()}] Upload results: {upload_results}")
 
-        # ── Step 6: Notifikasi sukses ────────────────────────────────────────
-        # FIX #8: notifikasi error dibungkus try-except sendiri agar traceback
-        # asli tidak tertimpa jika Telegram down
+        # Step 6: Notifikasi sukses
         try:
             await notifier.notify_success(
-                slot             = slot,
-                title            = topic["title"],
-                video_url        = video_url,
-                model_used       = model_used,
-                duration_seconds = duration,
+                slot            = slot,
+                title           = topic["title"],
+                video_url       = video_url,
+                model_used      = model_used,
+                duration_seconds= duration,
             )
             for res in upload_results:
                 if res.get("success") and res.get("platform") != "none":
@@ -172,8 +145,6 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
             f"[{slot.upper()}] ❌ Pipeline gagal setelah {duration:.0f}s: {e}",
             exc_info=True,
         )
-        # FIX #8: bungkus notify_error dalam try-except sendiri
-        # agar exception Telegram tidak menimpa traceback asli di log
         try:
             await notifier.notify_error(slot=slot, title=title, error_message=str(e))
         except Exception as notif_err:
@@ -183,7 +154,6 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
             )
 
     finally:
-        # Selalu lepas lock, bahkan jika pipeline crash
         with _active_slots_lock:
             _active_slots.discard(slot)
 
@@ -191,10 +161,6 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
 # ─── Step helpers ─────────────────────────────────────────────────────────────
 
 async def _generate_script(topic: dict, model: str, slot: str) -> dict:
-    """
-    Panggil /generate-script dan parse JSON-nya.
-    FIX #4: tangkap JSONDecodeError + non-JSON response dari AI (rate-limit, markdown).
-    """
     import json as _json
     from ai_client import call_ai, clean_json, AI_MODELS
 
@@ -206,14 +172,14 @@ async def _generate_script(topic: dict, model: str, slot: str) -> dict:
         f'KETENTUAN WAJIB:\n'
         f'- Buat tepat {num_slides} slide\n'
         f'- Slide 1: Pembukaan menarik — sapa penonton, perkenalkan topik (2-3 kalimat)\n'
-        f'- Slide 2 s/d {num_slides-1}: Isi konten — setiap slide membahas 1 poin spesifik dengan penjelasan jelas dan konkret (3-4 kalimat per slide)\n'
+        f'- Slide 2 s/d {num_slides-1}: Isi konten — setiap slide membahas 1 poin spesifik (3-4 kalimat per slide)\n'
         f'- Slide {num_slides}: Penutup — rangkuman singkat + ajakan action (2-3 kalimat)\n'
         f'- Setiap script HARUS berisi kalimat lengkap yang natural diucapkan, minimal 30 kata per slide\n'
         f'- Gunakan bahasa Indonesia yang natural, mudah dipahami, dan mengalir enak didengar\n'
-        f'- JANGAN menggunakan bullet point atau numbering dalam script — tulis dalam bentuk paragraf narasi\n'
-        f'- image_prompt: deskripsi visual dalam bahasa Inggris yang relevan dengan isi slide, cinematic style\n'
+        f'- JANGAN menggunakan bullet point atau numbering — tulis dalam bentuk paragraf narasi\n'
+        f'- image_prompt: deskripsi visual dalam bahasa Inggris, cinematic style\n'
         f'- duration: perkiraan durasi baca dalam detik (minimal 8, maksimal 15)\n\n'
-        f'Respond HANYA dalam JSON (tanpa markdown/backtick/komentar), format:\n'
+        f'Respond HANYA dalam JSON (tanpa markdown/backtick/komentar):\n'
         f'{{"slides": [{{"script": "teks narasi lengkap", "image_prompt": "visual description in english", "duration": 10}}]}}'
     )
 
@@ -222,11 +188,9 @@ async def _generate_script(topic: dict, model: str, slot: str) -> dict:
     try:
         data = _json.loads(clean_json(raw))
     except (_json.JSONDecodeError, ValueError) as exc:
-        # AI mungkin return rate-limit message atau markdown panjang
         preview = raw[:200].replace("\n", " ")
         raise RuntimeError(
-            f"generate-script: JSON parse error ({exc}). "
-            f"Raw response preview: {preview!r}"
+            f"generate-script: JSON parse error ({exc}). Preview: {preview!r}"
         )
 
     if "slides" not in data or not isinstance(data["slides"], list):
@@ -241,9 +205,7 @@ async def _generate_script(topic: dict, model: str, slot: str) -> dict:
 
 
 async def _start_render(topic: dict, slides: list, width: int, height: int, slot: str) -> str:
-    """Kirim request render ke endpoint in-process dan return job_id."""
     import httpx
-
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(f"{INTERNAL_API}/render-video", json={
             "title":  topic["title"],
@@ -259,43 +221,42 @@ async def _start_render(topic: dict, slides: list, width: int, height: int, slot
 
 async def _call_with_retry(label: str, coro_fn, retries: int = 2, delay: float = 5):
     """
-    FIX #7: wrapper retry generic.
-    Coba coro_fn() hingga (retries+1) kali dengan jeda delay detik antar percobaan.
-    Raise exception terakhir jika semua percobaan gagal.
+    FIX #3: Generic retry wrapper dengan exponential backoff untuk 429.
+    Jika exception mengandung '429', delay dikalikan 2 tiap percobaan.
     """
-    last_exc = None
-    for attempt in range(1, retries + 2):  # attempt 1..retries+1
+    last_exc  = None
+    cur_delay = delay
+
+    for attempt in range(1, retries + 2):
         try:
             return await coro_fn()
         except Exception as exc:
             last_exc = exc
+            is_rate_limit = "429" in str(exc)
+
             if attempt <= retries:
+                wait = cur_delay * (2 ** (attempt - 1)) if is_rate_limit else cur_delay
                 logger.warning(
                     f"{label}: percobaan {attempt}/{retries + 1} gagal "
-                    f"({exc}). Retry dalam {delay}s..."
+                    f"({exc}). Retry dalam {wait:.0f}s..."
                 )
-                await asyncio.sleep(delay)
+                await asyncio.sleep(wait)
             else:
                 logger.error(
                     f"{label}: semua {retries + 1} percobaan gagal. "
                     f"Error terakhir: {exc}"
                 )
+
     raise last_exc
 
 
-# ─── DB Poller (tanpa HTTP) ───────────────────────────────────────────────────
+# ─── DB Poller ────────────────────────────────────────────────────────────────
 
 async def _poll_job_db(job_id: str, slot: str, timeout: int = 600) -> tuple[str, str]:
-    """
-    FIX #5: Poll status render langsung dari SQLite — tanpa HTTP round-trip.
-    Hemat 120 koneksi per pipeline (polling 5 detik × 10 menit).
-    Return tuple (video_url, thumbnail_path).
-    """
-    import json as _json
     from job_store import get_job
 
     deadline = time.time() + timeout
-    interval = 5  # cek setiap 5 detik
+    interval = 5
 
     while time.time() < deadline:
         job_record = get_job(job_id)
@@ -306,10 +267,7 @@ async def _poll_job_db(job_id: str, slot: str, timeout: int = 600) -> tuple[str,
         status = job_record.get("status")
 
         if status == "done":
-            video_url      = job_record.get("video_url") or ""
-            # FIX G: jika video_url kosong, render selesai tapi URL tidak tersimpan —
-            # ini bug data corruption, raise agar pipeline tidak upload ke platform
-            # dengan URL kosong (Telegram/YouTube akan return API error yang tidak jelas).
+            video_url = job_record.get("video_url") or ""
             if not video_url:
                 raise RuntimeError(
                     f"Job {job_id} berstatus 'done' tapi video_url kosong — "
@@ -322,9 +280,7 @@ async def _poll_job_db(job_id: str, slot: str, timeout: int = 600) -> tuple[str,
             return video_url, thumbnail_path
 
         elif status == "error":
-            raise RuntimeError(
-                f"Render error: {job_record.get('message', 'unknown')}"
-            )
+            raise RuntimeError(f"Render error: {job_record.get('message', 'unknown')}")
 
         elif status in ("queued", "processing"):
             logger.debug(f"[{slot.upper()}] Job {job_id}: {status}...")
@@ -339,7 +295,6 @@ async def _poll_job_db(job_id: str, slot: str, timeout: int = 600) -> tuple[str,
 # ─── Scheduler Setup ──────────────────────────────────────────────────────────
 
 def create_scheduler() -> AsyncIOScheduler:
-    """Buat dan konfigurasi APScheduler dengan 3 jadwal harian."""
     sched = AsyncIOScheduler(timezone=TIMEZONE)
 
     sched.add_job(
@@ -349,9 +304,8 @@ def create_scheduler() -> AsyncIOScheduler:
         id="job_pagi",
         name=f"Auto Video Pagi ({HOUR_PAGI:02d}:00 {TIMEZONE})",
         replace_existing=True,
-        misfire_grace_time=300,  # toleransi 5 menit jika server restart
+        misfire_grace_time=300,
     )
-
     sched.add_job(
         run_full_pipeline,
         trigger=CronTrigger(hour=HOUR_SIANG, minute=0, timezone=TIMEZONE),
@@ -361,7 +315,6 @@ def create_scheduler() -> AsyncIOScheduler:
         replace_existing=True,
         misfire_grace_time=300,
     )
-
     sched.add_job(
         run_full_pipeline,
         trigger=CronTrigger(hour=HOUR_MALAM, minute=0, timezone=TIMEZONE),
@@ -371,32 +324,25 @@ def create_scheduler() -> AsyncIOScheduler:
         replace_existing=True,
         misfire_grace_time=300,
     )
-
     return sched
 
 
 def start_scheduler():
-    """Start scheduler — dipanggil dari main.py saat FastAPI startup."""
     global _scheduler
-
     if not SCHEDULER_ENABLED:
         logger.info("Scheduler dinonaktifkan (SCHEDULER_ENABLED=false)")
         return
 
     _scheduler = create_scheduler()
     _scheduler.start()
-
     jobs = _scheduler.get_jobs()
     logger.info(f"✅ Scheduler aktif dengan {len(jobs)} job:")
     for job in jobs:
-        next_run = job.next_run_time
-        logger.info(f"   • {job.name} — next: {next_run}")
-
+        logger.info(f"  • {job.name} — next: {job.next_run_time}")
     return _scheduler
 
 
 def stop_scheduler():
-    """Stop scheduler — dipanggil saat FastAPI shutdown."""
     global _scheduler
     if _scheduler and _scheduler.running:
         _scheduler.shutdown(wait=False)
@@ -404,7 +350,6 @@ def stop_scheduler():
 
 
 def get_scheduler_status() -> dict:
-    """Return status semua job untuk endpoint /scheduler-status."""
     if not _scheduler:
         return {"enabled": False, "jobs": []}
 

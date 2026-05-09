@@ -1,5 +1,6 @@
 [phases.setup]
-nixPkgs = ["python313", "ffmpeg", "dejavu_fonts"]
+# FIX #2: tambah dejavu_fonts + fontconfig agar FFmpeg drawtext tidak gagal di container
+nixPkgs = ["python313", "ffmpeg", "fontconfig", "dejavu_fonts"]
 
 [phases.install]
 cmds = ["pip install -r requirements.txt"]
