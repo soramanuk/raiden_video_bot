@@ -21,7 +21,7 @@ import os, uuid, asyncio, json, tempfile, shutil
 from pathlib import Path
 from typing import Optional, Literal
 import httpx
-import edge_tts
+from gtts import gTTS
 import uploader
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -607,8 +607,13 @@ async def do_render(job_id: str, req: RenderRequest):
 
 
 async def gen_voiceover(text: str, voice: str, out_path: str):
-    communicate = edge_tts.Communicate(text, voice)
-    await communicate.save(out_path)
+    # gTTS: tidak bergantung Edge TTS — tidak ada IP block di Railway
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, _gtts_save, text, out_path)
+
+def _gtts_save(text: str, out_path: str):
+    tts = gTTS(text=text, lang="id", slow=False)
+    tts.save(out_path)
 
 
 # ─── Image Download: Retry + Validasi ────────────────────────────────────────
