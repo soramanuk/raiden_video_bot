@@ -710,51 +710,72 @@ def _is_valid_image(path: str) -> tuple[bool, str]:
 
 async def download_image(prompt: str, width: int, height: int, out_path: str):
     """
-    Download gambar dengan multi-provider fallback:
-      1. Unsplash Source (gratis, tanpa API key)
-      2. Picsum Photos (tidak pernah 429)
-      3. Fallback abu-abu
+    Download gambar dari Pixabay API.
+    Set env var PIXABAY_API_KEY di Railway.
+    Fallback ke Picsum jika Pixabay gagal.
     """
+    import urllib.parse
+
     keywords = prompt.split(",")[0].strip()
     keywords = re.sub(r"[^a-zA-Z0-9 ]", "", keywords)
-    keywords = "+".join(keywords.split()[:5])
+    keywords = "+".join(keywords.split()[:4])
 
-    providers = [
-        f"https://placehold.co/{width}x{height}/1a1a2e/ffffff?text={keywords.replace('+', '+')[:20]}",
-        f"https://via.placeholder.com/{width}x{height}/1a1a2e/ffffff?text=Video",
-    ]
-
+    pixabay_key = os.getenv("PIXABAY_API_KEY", "")
     last_error = ""
-    for attempt, url in enumerate(providers, 1):
+
+    # Provider 1: Pixabay API
+    if pixabay_key:
         try:
-            _img_logger.info(f"[attempt {attempt}/{len(providers)}] Download: {url[:80]}")
-            async with httpx.AsyncClient(timeout=IMAGE_DOWNLOAD_TIMEOUT, follow_redirects=True) as c:
-                r = await c.get(url)
+            api_url = (
+                f"https://pixabay.com/api/?key={pixabay_key}"
+                f"&q={urllib.parse.quote(keywords)}"
+                f"&image_type=photo&orientation=horizontal"
+                f"&min_width={width}&safesearch=true&per_page=5"
+            )
+            async with httpx.AsyncClient(timeout=30) as c:
+                r = await c.get(api_url)
+            if r.status_code == 200:
+                hits = r.json().get("hits", [])
+                if hits:
+                    img_url = hits[0].get("largeImageURL") or hits[0].get("webformatURL")
+                    async with httpx.AsyncClient(timeout=60, follow_redirects=True) as c:
+                        r2 = await c.get(img_url)
+                    if r2.status_code == 200:
+                        with open(out_path, "wb") as f:
+                            f.write(r2.content)
+                        valid, reason = _is_valid_image(out_path)
+                        if valid:
+                            _img_logger.info(f"Gambar OK dari Pixabay ({reason}, {Path(out_path).stat().st_size // 1024} KB)")
+                            return
+                        last_error = f"Pixabay validasi gagal: {reason}"
+                    else:
+                        last_error = f"Pixabay img HTTP {r2.status_code}"
+                else:
+                    last_error = "Pixabay: tidak ada hasil"
+            else:
+                last_error = f"Pixabay API HTTP {r.status_code}"
+        except Exception as exc:
+            last_error = f"Pixabay error: {exc}"
+        _img_logger.warning(f"{last_error} — fallback ke Picsum")
 
-            if r.status_code != 200:
-                last_error = f"HTTP {r.status_code}"
-                _img_logger.warning(f"[attempt {attempt}] {last_error} — coba provider berikutnya")
-                continue
-
+    # Provider 2: Picsum fallback
+    try:
+        seed = uuid.uuid4().int % 99999
+        url = f"https://picsum.photos/{width}/{height}?random={seed}"
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as c:
+            r = await c.get(url)
+        if r.status_code == 200:
             with open(out_path, "wb") as f:
                 f.write(r.content)
-
             valid, reason = _is_valid_image(out_path)
             if valid:
-                _img_logger.info(f"Gambar OK provider {attempt} ({reason}, {Path(out_path).stat().st_size // 1024} KB)")
+                _img_logger.info(f"Gambar OK dari Picsum ({reason})")
                 return
+        last_error = f"Picsum HTTP {r.status_code}"
+    except Exception as exc:
+        last_error = f"Picsum error: {exc}"
 
-            last_error = f"validasi gagal: {reason}"
-            _img_logger.warning(f"[attempt {attempt}] {last_error} — coba provider berikutnya")
-
-        except (httpx.TimeoutException, httpx.ConnectError, httpx.ReadError) as exc:
-            last_error = type(exc).__name__
-            _img_logger.warning(f"[attempt {attempt}] Network error: {exc}")
-
-        except Exception as exc:
-            last_error = str(exc)
-            _img_logger.error(f"[attempt {attempt}] Error: {exc}", exc_info=True)
-
+    # Fallback abu-abu
     _img_logger.error(f"Semua provider gagal ({last_error}). Pakai fallback untuk: {prompt[:60]}")
     with open(out_path, "wb") as f:
         f.write(_FALLBACK_JPEG)
