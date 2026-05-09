@@ -101,6 +101,10 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
         model_used = script_data.get("model_used", model)
         logger.info(f"[{slot.upper()}] Script OK — {len(slides)} slide, model: {model_used}")
 
+        # Log script lengkap ke Deploy Logs untuk review
+        for i, slide in enumerate(slides, 1):
+            logger.info(f"[{slot.upper()}] SLIDE {i}: {slide.get('script', '')[:200]}")
+
         # Tentukan dimensi berdasarkan ratio
         ratio  = topic.get("ratio", "16:9")
         width, height = {
@@ -108,19 +112,6 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
             "9:16": (720, 1280),
             "1:1":  (720, 720),
         }.get(ratio, (1280, 720))
-
-        # ── Notifikasi mulai proses ──────────────────────────────────────────
-        try:
-            await notifier.notify_start(
-                slot       = slot,
-                title      = topic["title"],
-                topic      = topic.get("topic", topic["title"]),
-                model      = model_used,
-                num_slides = len(slides),
-                ratio      = ratio,
-            )
-        except Exception as notif_err:
-            logger.warning(f"[{slot.upper()}] notify_start gagal (non-fatal): {notif_err}")
 
         # ── Step 3: Render video (dengan retry) ─────────────────────────────
         # FIX #7: retry untuk step ini juga
@@ -138,28 +129,6 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
         video_url, thumbnail_path = await _poll_job_db(job_id, slot)
         duration = time.time() - start_time
         logger.info(f"[{slot.upper()}] ✅ Render selesai dalam {duration:.0f}s — {video_url}")
-
-        # ── Baca durasi video ─────────────────────────────────────────────────
-        video_duration_sec = 0
-        try:
-            import imageio_ffmpeg as _iio_ffmpeg
-            import subprocess, json as _json
-            video_filename = video_url.split("/")[-1]
-            video_filepath = str(Path(os.getenv("OUTPUT_DIR", "/app/outputs")) / video_filename)
-            _result = subprocess.run([
-                _iio_ffmpeg.get_ffmpeg_exe(),
-                "-v", "quiet", "-print_format", "json", "-show_format",
-                "-i", video_filepath,
-                "-f", "null", "-",
-            ], capture_output=True, text=True, timeout=15)
-            # ffmpeg -i outputs duration to stderr
-            import re as _re
-            _match = _re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", _result.stderr)
-            if _match:
-                h, m, s = int(_match.group(1)), int(_match.group(2)), float(_match.group(3))
-                video_duration_sec = h * 3600 + m * 60 + s
-        except Exception as _e:
-            logger.warning(f"[{slot.upper()}] Gagal baca durasi video: {_e}")
 
         # ── Step 5: Upload ke platform ───────────────────────────────────────
         upload_results = await uploader.upload(
@@ -182,7 +151,6 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
                 video_url        = video_url,
                 model_used       = model_used,
                 duration_seconds = duration,
-                video_duration   = video_duration_sec,
             )
             for res in upload_results:
                 if res.get("success") and res.get("platform") != "none":
@@ -230,12 +198,23 @@ async def _generate_script(topic: dict, model: str, slot: str) -> dict:
     import json as _json
     from ai_client import call_ai, clean_json, AI_MODELS
 
+    num_slides = topic.get("num_slides", 6)
     prompt = (
-        f'Kamu adalah scriptwriter video profesional. Buat script untuk video berjudul '
-        f'"{topic["title"]}" tentang topik: {topic["topic"]}\n\n'
-        f'Buat tepat {topic.get("num_slides", 6)} slide. Respond HANYA dalam JSON '
-        f'(tanpa markdown/backtick), format:\n'
-        f'{{"slides": [{{"script": "...", "image_prompt": "...", "duration": 5}}]}}'
+        f'Kamu adalah scriptwriter video edukasi berbahasa Indonesia yang profesional.\n\n'
+        f'Buat script narasi untuk video berjudul: "{topic["title"]}"\n'
+        f'Topik utama: {topic["topic"]}\n\n'
+        f'KETENTUAN WAJIB:\n'
+        f'- Buat tepat {num_slides} slide\n'
+        f'- Slide 1: Pembukaan menarik — sapa penonton, perkenalkan topik (2-3 kalimat)\n'
+        f'- Slide 2 s/d {num_slides-1}: Isi konten — setiap slide membahas 1 poin spesifik dengan penjelasan jelas dan konkret (3-4 kalimat per slide)\n'
+        f'- Slide {num_slides}: Penutup — rangkuman singkat + ajakan action (2-3 kalimat)\n'
+        f'- Setiap script HARUS berisi kalimat lengkap yang natural diucapkan, minimal 30 kata per slide\n'
+        f'- Gunakan bahasa Indonesia yang natural, mudah dipahami, dan mengalir enak didengar\n'
+        f'- JANGAN menggunakan bullet point atau numbering dalam script — tulis dalam bentuk paragraf narasi\n'
+        f'- image_prompt: deskripsi visual dalam bahasa Inggris yang relevan dengan isi slide, cinematic style\n'
+        f'- duration: perkiraan durasi baca dalam detik (minimal 8, maksimal 15)\n\n'
+        f'Respond HANYA dalam JSON (tanpa markdown/backtick/komentar), format:\n'
+        f'{{"slides": [{{"script": "teks narasi lengkap", "image_prompt": "visual description in english", "duration": 10}}]}}'
     )
 
     raw = await call_ai(model, prompt)
