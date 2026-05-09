@@ -22,6 +22,8 @@ from pathlib import Path
 from typing import Optional, Literal
 import httpx
 from gtts import gTTS
+import imageio_ffmpeg as _iio_ffmpeg
+FFMPEG_BIN = _iio_ffmpeg.get_ffmpeg_exe()
 import uploader
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -638,7 +640,7 @@ def _make_fallback_jpeg(width: int = 1280, height: int = 720) -> bytes:
         tmp = f.name
     try:
         subprocess.run([
-            "ffmpeg", "-y",
+            FFMPEG_BIN, "-y",
             "-f", "lavfi", "-i", f"color=c=0x1a1a2e:size={width}x{height}:rate=1",
             "-frames:v", "1", "-q:v", "5", tmp,
         ], capture_output=True, check=True)
@@ -807,7 +809,7 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
         for i, s in enumerate(slides):
             seg = str(tmp / f"seg_{i:02d}.mp4")
             cmd = [
-                "ffmpeg", "-y", "-loop", "1", "-i", s["img"], "-i", s["audio"],
+                FFMPEG_BIN, "-y", "-loop", "1", "-i", s["img"], "-i", s["audio"],
                 "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac", "-b:a", "128k",
                 "-pix_fmt", "yuv420p",
                 "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1",
@@ -827,7 +829,7 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
             for seg in segment_paths:
                 f.write(f"file '{seg}'\n")
 
-        concat_cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy", output]
+        concat_cmd = [FFMPEG_BIN, "-y", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy", output]
         proc = await asyncio.create_subprocess_exec(*concat_cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
         _, stderr = await asyncio.wait_for(proc.communicate(), timeout=300)
         if proc.returncode != 0:
