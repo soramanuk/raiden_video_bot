@@ -726,17 +726,31 @@ async def download_image(prompt: str, width: int, height: int, out_path: str):
     # Provider 1: Pixabay API
     if pixabay_key:
         try:
-            api_url = (
-                f"https://pixabay.com/api/?key={pixabay_key}"
-                f"&q={urllib.parse.quote(keywords)}"
-                f"&image_type=photo&orientation=horizontal"
-                f"&min_width={width}&safesearch=true&per_page=5"
-            )
-            async with httpx.AsyncClient(timeout=30) as c:
-                r = await c.get(api_url)
-            if r.status_code == 200:
-                hits = r.json().get("hits", [])
-                if hits:
+            # Coba keyword asli dulu, fallback ke kata pertama saja, lalu "nature"
+            keyword_attempts = [
+                keywords,
+                keywords.split("+")[0] if "+" in keywords else keywords,
+                "nature",
+            ]
+            hits = []
+            for kw in keyword_attempts:
+                api_url = (
+                    f"https://pixabay.com/api/?key={pixabay_key}"
+                    f"&q={urllib.parse.quote(kw)}"
+                    f"&image_type=photo&orientation=horizontal"
+                    f"&safesearch=true&per_page=5"
+                )
+                async with httpx.AsyncClient(timeout=30) as c:
+                    r = await c.get(api_url)
+                if r.status_code == 200:
+                    hits = r.json().get("hits", [])
+                    if hits:
+                        break
+                    last_error = f"Pixabay: tidak ada hasil untuk '{kw}'"
+                else:
+                    last_error = f"Pixabay API HTTP {r.status_code}"
+                    break
+            if hits:
                     img_url = hits[0].get("largeImageURL") or hits[0].get("webformatURL")
                     async with httpx.AsyncClient(timeout=60, follow_redirects=True) as c:
                         r2 = await c.get(img_url)
