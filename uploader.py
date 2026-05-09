@@ -1,20 +1,21 @@
 """
 uploader.py — Auto Upload ke YouTube & Telegram
+
 Mendukung upload video hasil render ke berbagai platform.
 
 ENV VARS:
-  UPLOAD_TARGET           = "telegram" | "youtube" | "both" | "none"  (default: telegram)
+UPLOAD_TARGET = "telegram" | "youtube" | "both" | "none" (default: telegram)
 
-  # Telegram (paling mudah):
-  TELEGRAM_BOT_TOKEN      = token dari @BotFather
-  TELEGRAM_CHANNEL_ID     = @channelname atau -100xxxxxxxx
+# Telegram (paling mudah):
+TELEGRAM_BOT_TOKEN = token dari @BotFather
+TELEGRAM_CHANNEL_ID = @channelname atau -100xxxxxxxx
 
-  # YouTube (butuh OAuth2 setup awal):
-  YOUTUBE_CLIENT_ID       = dari Google Cloud Console
-  YOUTUBE_CLIENT_SECRET   = dari Google Cloud Console
-  YOUTUBE_REFRESH_TOKEN   = dapatkan via oauth_setup.py
-  YOUTUBE_DEFAULT_PRIVACY = "public" | "unlisted" | "private"  (default: public)
-  YOUTUBE_DEFAULT_CATEGORY= angka category ID (default: "22" = People & Blogs)
+# YouTube (butuh OAuth2 setup awal):
+YOUTUBE_CLIENT_ID = dari Google Cloud Console
+YOUTUBE_CLIENT_SECRET = dari Google Cloud Console
+YOUTUBE_REFRESH_TOKEN = dapatkan via oauth_setup.py
+YOUTUBE_DEFAULT_PRIVACY = "public" | "unlisted" | "private" (default: public)
+YOUTUBE_DEFAULT_CATEGORY= angka category ID (default: "22" = People & Blogs)
 """
 
 import os
@@ -27,7 +28,6 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 UPLOAD_TARGET = os.getenv("UPLOAD_TARGET", "telegram")
-
 
 # ─── Telegram Uploader ────────────────────────────────────────────────────────
 
@@ -44,8 +44,8 @@ async def upload_to_telegram(
     Telegram menerima URL video langsung via sendVideo (untuk file ≤50MB).
     Untuk file lebih besar, download dulu lalu upload sebagai dokumen.
     """
-    bot_token   = os.getenv("TELEGRAM_BOT_TOKEN", "")
-    channel_id  = os.getenv("TELEGRAM_CHANNEL_ID", os.getenv("TELEGRAM_CHAT_ID", ""))
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    channel_id = os.getenv("TELEGRAM_CHANNEL_ID", os.getenv("TELEGRAM_CHAT_ID", ""))
 
     if not bot_token or not channel_id:
         raise ValueError("TELEGRAM_BOT_TOKEN dan TELEGRAM_CHANNEL_ID wajib diisi untuk upload Telegram")
@@ -140,7 +140,7 @@ async def upload_to_telegram(
 
 async def _refresh_youtube_token() -> str:
     """Refresh OAuth2 access token YouTube menggunakan refresh token."""
-    client_id     = os.getenv("YOUTUBE_CLIENT_ID", "")
+    client_id = os.getenv("YOUTUBE_CLIENT_ID", "")
     client_secret = os.getenv("YOUTUBE_CLIENT_SECRET", "")
     refresh_token = os.getenv("YOUTUBE_REFRESH_TOKEN", "")
 
@@ -172,8 +172,8 @@ async def upload_to_youtube(
     Jika local_path disediakan (pre-downloaded oleh dispatcher), tidak download ulang.
     Butuh OAuth2 refresh token — jalankan oauth_setup.py sekali untuk mendapatkannya.
     """
-    privacy   = os.getenv("YOUTUBE_DEFAULT_PRIVACY", "public")
-    category  = os.getenv("YOUTUBE_DEFAULT_CATEGORY", "22")
+    privacy = os.getenv("YOUTUBE_DEFAULT_PRIVACY", "public")
+    category = os.getenv("YOUTUBE_DEFAULT_CATEGORY", "22")
 
     access_token = await _refresh_youtube_token()
 
@@ -245,24 +245,26 @@ async def upload_to_youtube(
                     },
                 )
             upload_r.raise_for_status()
-            video_data = upload_r.json()
-            video_id = video_data.get("id", "")
-            logger.info(f"Upload YouTube berhasil: https://youtu.be/{video_id}")
 
-            # Upload thumbnail kustom jika tersedia
-            thumbnail_uploaded = False
-            if thumbnail_path and video_id:
-                thumbnail_uploaded = await set_youtube_thumbnail(
-                    video_id, thumbnail_path, access_token
-                )
+        video_data = upload_r.json()
+        video_id = video_data.get("id", "")
+        logger.info(f"Upload YouTube berhasil: https://youtu.be/{video_id}")
 
-            return {
-                "platform":           "youtube",
-                "success":            True,
-                "video_id":           video_id,
-                "url":                f"https://youtu.be/{video_id}",
-                "thumbnail_uploaded": thumbnail_uploaded,
-            }
+        # Upload thumbnail kustom jika tersedia
+        thumbnail_uploaded = False
+        if thumbnail_path and video_id:
+            thumbnail_uploaded = await set_youtube_thumbnail(
+                video_id, thumbnail_path, access_token
+            )
+
+        return {
+            "platform": "youtube",
+            "success": True,
+            "video_id": video_id,
+            "url": f"https://youtu.be/{video_id}",
+            "thumbnail_uploaded": thumbnail_uploaded,
+        }
+
     finally:
         if _owns_tmp:
             Path(tmp_path).unlink(missing_ok=True)
@@ -298,16 +300,60 @@ async def set_youtube_thumbnail(
                     },
                     content=f.read(),
                 )
-        if r.status_code in (200, 201):
-            logger.info(f"Thumbnail berhasil diupload untuk video {video_id}")
-            return True
-        else:
-            logger.warning(f"Thumbnail upload gagal: HTTP {r.status_code} — {r.text[:200]}")
-            return False
+            if r.status_code in (200, 201):
+                logger.info(f"Thumbnail berhasil diupload untuk video {video_id}")
+                return True
+            else:
+                logger.warning(f"Thumbnail upload gagal: HTTP {r.status_code} — {r.text[:200]}")
+                return False
     except Exception as e:
         logger.error(f"Thumbnail upload error: {e}")
         return False
 
+
+# ─── Font detection helper ───────────────────────────────────────────────────
+
+def _find_system_font() -> str:
+    """
+    Cari font TTF yang tersedia di sistem container (Nix / Debian / Alpine).
+    Return path string jika ditemukan, string kosong jika tidak ada.
+    FFmpeg drawtext BUTUH fontfile saat tidak ada fontconfig cache di container.
+    """
+    candidates = [
+        # Nix (nixpacks Railway default)
+        "/run/current-system/sw/share/X11/fonts/DejaVuSans-Bold.ttf",
+        # Nix user profile
+        "/root/.nix-profile/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        # Debian / Ubuntu
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+        # Alpine
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+        # Generic fallback paths
+        "/usr/share/fonts/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/DejaVuSans-Bold.ttf",
+    ]
+    for p in candidates:
+        if Path(p).exists():
+            logger.debug(f"Font ditemukan: {p}")
+            return p
+
+    # Cari via glob di /usr/share/fonts jika semua kandidat di atas tidak ada
+    for base in ["/usr/share/fonts", "/run/current-system/sw/share/X11/fonts",
+                 "/root/.nix-profile/share/fonts"]:
+        for ttf in Path(base).rglob("*.ttf") if Path(base).exists() else []:
+            name = ttf.name.lower()
+            # Pilih yang Bold agar teks thumbnail terbaca
+            if "bold" in name and ("dejavu" in name or "liberation" in name or "free" in name):
+                logger.debug(f"Font ditemukan via glob: {ttf}")
+                return str(ttf)
+
+    logger.warning("Tidak ada font TTF ditemukan — drawtext mungkin gagal di container tanpa fontconfig")
+    return ""
+
+
+# ─── Thumbnail Generator ─────────────────────────────────────────────────────
 
 async def generate_thumbnail(
     image_path: str,
@@ -324,11 +370,16 @@ async def generate_thumbnail(
       • Overlay gelap semi-transparan di bagian bawah
       • Teks judul putih bold di tengah bawah, dengan shadow untuk readability
 
+    FIX: import imageio_ffmpeg dipindah ke level module (bukan lazy import di dalam
+    fungsi) untuk menghindari IndentationError yang menyebabkan crash loop saat startup.
+
+    FIX: fontfile= ditambahkan ke filter drawtext agar FFmpeg tidak bergantung pada
+    fontconfig cache yang tidak selalu ada di container Nix/Railway.
+
     Return True jika berhasil, False jika FFmpeg gagal.
     """
-    import asyncio
-    import imageio_ffmpeg as _iio_ffmpeg
-    _FFMPEG = _iio_ffmpeg.get_ffmpeg_exe()
+    # Import sudah dilakukan di level module (lihat bawah file)
+    # _FFMPEG sudah tersedia sebagai module-level variable
 
     # Sanitasi judul: buang karakter yang FFmpeg drawtext tidak bisa handle
     safe_title = (
@@ -346,22 +397,31 @@ async def generate_thumbnail(
 
     box_y = height - 180
 
+    # Cari font yang tersedia — wajib untuk drawtext di container tanpa fontconfig
+    font_path = _find_system_font()
+
+    drawtext_filter = (
+        f"drawtext=text='{safe_title}'"
+        f":fontsize=52:fontcolor=white"
+        f":x=(w-text_w)/2:y={height - 110}"
+        f":shadowcolor=black@0.8:shadowx=3:shadowy=3"
+    )
+    if font_path:
+        # Escape titik dua di path untuk FFmpeg filter graph
+        escaped_font = font_path.replace(":", "\\:")
+        drawtext_filter += f":fontfile={escaped_font}"
+
     # Build filter sebagai list, join dengan koma — hindari quoting hell
     filters = [
         f"scale={width}:{height}:force_original_aspect_ratio=increase",
         f"crop={width}:{height}:(iw-{width})/2:(ih-{height})/2",
         f"drawbox=x=0:y={box_y}:w={width}:h=180:color=black@0.55:t=fill",
-        (
-            f"drawtext=text='{safe_title}'"
-            f":fontsize=52:fontcolor=white"
-            f":x=(w-text_w)/2:y={height - 110}"
-            f":shadowcolor=black@0.8:shadowx=3:shadowy=3"
-        ),
+        drawtext_filter,
     ]
     filter_str = ",".join(filters)
 
     cmd = [
-        _FFMPEG, "-y",
+        _FFMPEG_BIN, "-y",
         "-i", image_path,
         "-vf", filter_str,
         "-vframes", "1",
@@ -376,16 +436,72 @@ async def generate_thumbnail(
             stderr=asyncio.subprocess.PIPE,
         )
         _, stderr = await asyncio.wait_for(proc.communicate(), timeout=60)
+
         if proc.returncode != 0:
-            logger.warning(f"FFmpeg thumbnail gagal: {stderr.decode()[-400:]}")
+            err_msg = stderr.decode()[-400:]
+            logger.warning(f"FFmpeg thumbnail gagal: {err_msg}")
+
+            # Jika error karena font, coba fallback tanpa drawtext sama sekali
+            if "drawtext" in err_msg or "fontfile" in err_msg or "No such file" in err_msg:
+                logger.info("Mencoba generate thumbnail tanpa overlay teks...")
+                return await _generate_thumbnail_no_text(image_path, out_path, width, height)
+
             return False
+
         size_kb = Path(out_path).stat().st_size // 1024
         logger.info(f"Thumbnail dibuat: {out_path} ({size_kb} KB)")
         return True
+
     except Exception as e:
         logger.error(f"generate_thumbnail error: {e}")
         return False
 
+
+async def _generate_thumbnail_no_text(
+    image_path: str,
+    out_path: str,
+    width: int = 1280,
+    height: int = 720,
+) -> bool:
+    """
+    Fallback: generate thumbnail tanpa overlay teks (hanya scale + crop).
+    Dipakai jika drawtext gagal karena font tidak ditemukan.
+    """
+    filter_str = (
+        f"scale={width}:{height}:force_original_aspect_ratio=increase,"
+        f"crop={width}:{height}:(iw-{width})/2:(ih-{height})/2"
+    )
+    cmd = [
+        _FFMPEG_BIN, "-y",
+        "-i", image_path,
+        "-vf", filter_str,
+        "-vframes", "1",
+        "-q:v", "2",
+        out_path,
+    ]
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        _, stderr = await asyncio.wait_for(proc.communicate(), timeout=60)
+        if proc.returncode != 0:
+            logger.warning(f"FFmpeg thumbnail (no-text fallback) gagal: {stderr.decode()[-200:]}")
+            return False
+        logger.info(f"Thumbnail (no-text fallback) dibuat: {out_path}")
+        return True
+    except Exception as e:
+        logger.error(f"_generate_thumbnail_no_text error: {e}")
+        return False
+
+
+# ─── Module-level FFmpeg init (FIX: bukan lazy import di dalam fungsi) ────────
+# Ini yang menyebabkan IndentationError sebelumnya — import ada di dalam fungsi
+# dengan indentasi yang salah. Dipindah ke sini agar Python parse dengan benar.
+
+import imageio_ffmpeg as _iio_ffmpeg
+_FFMPEG_BIN = _iio_ffmpeg.get_ffmpeg_exe()
 
 
 # ─── Dispatcher ───────────────────────────────────────────────────────────────
@@ -402,6 +518,7 @@ async def upload(
     Upload ke platform sesuai env UPLOAD_TARGET.
     Saat UPLOAD_TARGET=both, video di-download SEKALI ke tempfile bersama
     lalu diteruskan ke masing-masing uploader — tidak ada 2x download.
+
     thumbnail_path: path lokal ke file thumbnail JPEG (opsional, hanya dipakai YouTube).
     Return list hasil per platform.
     """
