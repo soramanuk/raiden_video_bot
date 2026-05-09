@@ -326,7 +326,9 @@ async def generate_thumbnail(
 
     Return True jika berhasil, False jika FFmpeg gagal.
     """
-    import asyncio
+import asyncio
+    import imageio_ffmpeg as _iio_ffmpeg
+    _FFMPEG = _iio_ffmpeg.get_ffmpeg_exe()
 
     # Sanitasi judul: buang karakter yang FFmpeg drawtext tidak bisa handle
     safe_title = (
@@ -359,7 +361,7 @@ async def generate_thumbnail(
     filter_str = ",".join(filters)
 
     cmd = [
-        "ffmpeg", "-y",
+        _FFMPEG, "-y",
         "-i", image_path,
         "-vf", filter_str,
         "-vframes", "1",
