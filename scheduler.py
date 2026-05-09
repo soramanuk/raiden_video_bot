@@ -139,6 +139,28 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
         duration = time.time() - start_time
         logger.info(f"[{slot.upper()}] ✅ Render selesai dalam {duration:.0f}s — {video_url}")
 
+        # ── Baca durasi video ─────────────────────────────────────────────────
+        video_duration_sec = 0
+        try:
+            import imageio_ffmpeg as _iio_ffmpeg
+            import subprocess, json as _json
+            video_filename = video_url.split("/")[-1]
+            video_filepath = str(Path(os.getenv("OUTPUT_DIR", "/app/outputs")) / video_filename)
+            _result = subprocess.run([
+                _iio_ffmpeg.get_ffmpeg_exe(),
+                "-v", "quiet", "-print_format", "json", "-show_format",
+                "-i", video_filepath,
+                "-f", "null", "-",
+            ], capture_output=True, text=True, timeout=15)
+            # ffmpeg -i outputs duration to stderr
+            import re as _re
+            _match = _re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", _result.stderr)
+            if _match:
+                h, m, s = int(_match.group(1)), int(_match.group(2)), float(_match.group(3))
+                video_duration_sec = h * 3600 + m * 60 + s
+        except Exception as _e:
+            logger.warning(f"[{slot.upper()}] Gagal baca durasi video: {_e}")
+
         # ── Step 5: Upload ke platform ───────────────────────────────────────
         upload_results = await uploader.upload(
             video_url      = video_url,
@@ -160,6 +182,7 @@ async def run_full_pipeline(slot: str, model_override: str | None = None):
                 video_url        = video_url,
                 model_used       = model_used,
                 duration_seconds = duration,
+                video_duration   = video_duration_sec,
             )
             for res in upload_results:
                 if res.get("success") and res.get("platform") != "none":

@@ -54,11 +54,20 @@ async def send(message: str) -> bool:
         return False
 
 
-async def notify_success(slot: str, title: str, video_url: str, model_used: str, duration_seconds: float):
+async def notify_success(slot: str, title: str, video_url: str, model_used: str, duration_seconds: float, video_duration: float = 0):
     """Notifikasi sukses dengan detail video."""
     tz_label = os.getenv("TIMEZONE", "Asia/Jakarta")
     waktu = datetime.now().strftime(f"%d/%m/%Y %H:%M ({tz_label})")
     slot_emoji = {"pagi": "🌅", "siang": "☀️", "malam": "🌙"}.get(slot, "🎬")
+
+    # Format durasi video
+    if video_duration > 0:
+        vid_min = int(video_duration) // 60
+        vid_sec = int(video_duration) % 60
+        vid_dur_str = f"{vid_min}:{vid_sec:02d} menit" if vid_min > 0 else f"{vid_sec} detik"
+        vid_line = f"🎞️ <b>Durasi video:</b> {vid_dur_str}\n"
+    else:
+        vid_line = ""
 
     msg = (
         f"{slot_emoji} <b>Video Berhasil Dibuat!</b>\n"
@@ -66,6 +75,7 @@ async def notify_success(slot: str, title: str, video_url: str, model_used: str,
         f"📌 <b>Judul:</b> {title}\n"
         f"🕐 <b>Slot:</b> {slot.capitalize()} ({waktu})\n"
         f"🤖 <b>Model AI:</b> {model_used}\n"
+        f"{vid_line}"
         f"⏱️ <b>Proses:</b> {duration_seconds:.0f} detik\n"
         f"━━━━━━━━━━━━━━━━━━\n"
         f"🎥 <a href=\"{video_url}\">Download Video</a>"
