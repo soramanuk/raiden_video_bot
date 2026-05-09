@@ -562,7 +562,7 @@ async def do_render(job_id: str, req: RenderRequest):
                 fallback_slides.append(i + 1)
 
             duration = await get_audio_duration(str(audio_path))
-            duration = max(duration + 5, slide.duration)
+            duration = max(duration + 1.5, slide.duration)
             inputs_for_ffmpeg.append({"img": str(img_path), "audio": str(audio_path), "duration": duration})
 
             _img_logger.debug(f"Slide {i+1}/{total} siap")
@@ -788,7 +788,7 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
                 "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac", "-b:a", "128k",
                 "-pix_fmt", "yuv420p",
                 "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1",
-                "-af", "apad",
+                "-af", "apad=pad_dur=2",
                 "-t", str(s["duration"]),
                 seg,
             ]
