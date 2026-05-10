@@ -1,202 +1,281 @@
 {
   "_comment": "Daily topic rotation. System auto-selects topic based on day index and time slot.",
   "_slots": "pagi=05:00 WIB | siang=12:00 WIB | malam=19:00 WIB",
-
+  "_pipeline": "5-beat cinematic story arc | EN voice | casual viral TikTok style | 9:16 vertical for TikTok/Reels/Shorts",
   "pagi": [
     {
-      "title": "5 Shocking Facts About the Golden Age of Islam",
-      "topic": "The Islamic Golden Age (8th-13th century) produced breakthroughs that shaped modern civilization: algebra was invented by Al-Khwarizmi, Ibn Sina wrote the Canon of Medicine used for 600 years, Muslim scholars preserved Greek knowledge and translated it for Europe, and the first university in the world was founded in Fez Morocco in 859 AD",
+      "title": "The Muslim Scientist Who Discovered How Eyes Work 1000 Years Ago",
+      "topic": "Ibn al-Haytham proved in 1021 AD that light travels FROM objects TO the eye, disproving the ancient Greek belief that eyes emit rays. He invented the camera obscura, wrote the Book of Optics that shaped Newton and Kepler, and spent years under house arrest in Cairo while developing his theories. Western science credited his discoveries 600 years later.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "history", "science"],
-      "ratio": "16:9"
+      "tags": ["Islam", "science", "IbnAlHaytham", "optics", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Amazing Muslim Inventions That Changed the World",
-      "topic": "Inventions from Muslim civilization that modern people use every day: coffee was first discovered and cultivated in Yemen, hospitals with trained doctors were established in Baghdad in 805 AD, windmills were invented in Persia, and the first systematic anatomy book with illustrations came from Ibn al-Nafis who also discovered pulmonary circulation",
+      "title": "The World First University Was Built by a Muslim Woman",
+      "topic": "Fatima al-Fihri, a Muslim woman from Morocco, founded the University of al-Qarawiyyin in Fez in 859 AD — recognized by UNESCO and Guinness World Records as the oldest continuously operating university on Earth. She used her entire inheritance to build it and made education free. Harvard was founded nearly 800 years later.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "inventions", "history"],
-      "ratio": "16:9"
+      "tags": ["Islam", "women", "education", "history", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "5 Facts About the Quran That Will Amaze You",
-      "topic": "Remarkable facts about the Quran: it has been memorized verbatim by millions of people worldwide called Hafiz making it the most memorized book in history, it was preserved orally and in writing simultaneously from the beginning, its description of embryonic development matches modern science, and it contains numerical patterns discovered by scholars",
+      "title": "Muslim Doctors Performed Surgery 1000 Years Before Europe Even Tried",
+      "topic": "Al-Zahrawi from Muslim Spain wrote a 30-volume surgical encyclopedia in 1000 AD that remained the standard medical text in Europe for 500 years. He invented over 200 surgical instruments still used in modern operating rooms today, performed the first recorded thyroid surgery, and developed techniques for setting broken bones.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Quran", "Islam", "facts"],
-      "ratio": "16:9"
+      "tags": ["Islam", "medicine", "AlZahrawi", "surgery", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Incredible Facts About the City of Mecca",
-      "topic": "Mind-blowing facts about Mecca: the Kaaba is the most visited site on Earth with over 2 million pilgrims during Hajj alone, the Grand Mosque is the largest mosque in the world, Mecca sits at the geographic center of the world landmasses, and the Black Stone called Hajar Aswad is believed to have fallen from paradise",
+      "title": "This Islamic City Had Street Lights When London Was Still in the Dark",
+      "topic": "In 10th century Cordoba, Muslim Spain had street lighting, running water, paved roads, 70 libraries, and over 300 public baths — while London was an unpaved town with no sewage system. Cordoba reached a population of 500,000, making it the largest city in Western Europe. Travellers described it as the jewel of the world.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Mecca", "Islam", "pilgrimage"],
-      "ratio": "16:9"
+      "tags": ["Islam", "history", "Cordoba", "civilization", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "5 Muslim Scholars Who Were Centuries Ahead",
-      "topic": "Muslim scholars who made discoveries centuries before Western science: Ibn al-Haytham proved light travels from objects to the eye 1000 years before Newton, Al-Biruni calculated the Earth circumference with stunning accuracy in 1000 AD, Ibn Khaldun founded the science of sociology in the 14th century, and Jabir ibn Hayyan created the foundations of modern chemistry",
+      "title": "The Muslim Mathematician Who Gave Us Algebra and the Word Algorithm",
+      "topic": "Muhammad ibn Musa al-Khwarizmi wrote his landmark book in 820 AD giving us the word algebra from al-jabr. His name — latinized as Algoritmi — gives us the word algorithm used in every computer program and AI system today. He also introduced the decimal number system to Europe that replaced Roman numerals.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "scholars", "science"],
-      "ratio": "16:9"
+      "tags": ["Islam", "mathematics", "AlKhwarizmi", "algebra", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Surprising Facts About Islamic Architecture",
-      "topic": "Islamic architecture facts that defy imagination: the Alhambra palace in Spain uses geometric patterns with mathematical precision, muqarnas honeycomb vaulting requires complex 3D geometry, the Great Mosque of Djenne in Mali is the largest mud-brick building in the world, and Islamic buildings use passive cooling systems that keep interiors cool without electricity",
+      "title": "The Quran Described Embryo Development 1400 Years Before Microscopes Existed",
+      "topic": "The Quran describes human embryo development in precise stages using terms that match what modern embryology only confirmed with microscopes in the 19th century. Professor Keith Moore, one of the world's leading embryologists, publicly stated these descriptions could not have come from 7th century knowledge.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "architecture", "history"],
-      "ratio": "16:9"
+      "tags": ["Quran", "science", "embryology", "Islam", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "5 Facts About Islamic Medicine That Saved Millions",
-      "topic": "Islamic medical contributions that saved humanity: Ibn Sina Canon of Medicine was the standard medical textbook in Europe for 600 years, Muslim physicians performed the first successful cataract surgeries, Al-Zahrawi wrote the first illustrated surgical encyclopedia, and Islamic hospitals in Baghdad had separate wards for different diseases 1000 years before European hospitals did",
+      "title": "Coffee Was Invented by Muslims — And Here Is the Proof",
+      "topic": "Coffee was first cultivated and consumed by Muslim Sufi monks in Yemen in the 15th century who used it to stay awake for night prayers. The word coffee comes from the Arabic qahwa. The first coffeehouses in history opened in Mecca and Constantinople. Coffee only reached Europe 200 years later through Ottoman trade routes.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "medicine", "history"],
-      "ratio": "16:9"
+      "tags": ["Islam", "coffee", "history", "culture", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "Without This Muslim Navigator Vasco da Gama Would Never Have Found India",
+      "topic": "Muslim master navigator Ahmad ibn Majid from Oman guided Vasco da Gama across the Indian Ocean in 1498. Da Gama himself admitted he could not have found India without him. Muslim traders had already mapped the Indian Ocean trade routes for centuries before European ships even attempted the journey.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "exploration", "navigation", "history", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "The Muslim Who Invented the First Flying Machine — 800 Years Before the Wright Brothers",
+      "topic": "Abbas ibn Firnas, a 9th century Andalusian polymath, built the first recorded flying machine and successfully glided through the air in 875 AD — nearly 1000 years before the Wright Brothers. He also invented the first clear reading glass lenses, a water clock, and a mechanical planetarium that simulated the movement of stars.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "IbnFirnas", "flight", "invention", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "The Islamic Hospital System 1000 Years Ahead of the West",
+      "topic": "The first full-service hospitals with separate wards for different diseases, trained staff, pharmacies, and outpatient care were built in the Islamic world starting in 805 AD Baghdad. Patients were treated regardless of race, religion, or wealth. These bimaristans also served as medical schools that trained future doctors — a model Europe adopted 400 years later.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "medicine", "hospital", "history", "IslamicFacts"],
+      "ratio": "9:16"
     }
   ],
-
   "siang": [
     {
-      "title": "5 Facts About the Ottoman Empire That Shocked the World",
-      "topic": "Ottoman Empire facts: at its peak it covered 3 continents and 32 provinces, Suleiman the Magnificent oversaw the construction of more than 300 mosques schools and bridges, the Ottomans granted religious freedom to Jews and Christians within their empire, and Ottoman engineers built complex waterworks and road systems centuries ahead of Europe",
+      "title": "A Muslim Doctor Discovered Blood Circulation 300 Years Before the West Got Credit",
+      "topic": "Ibn al-Nafis, a 13th century Egyptian physician, discovered that blood circulates through the lungs in 1242 AD. William Harvey is credited with this discovery in Europe in 1628 — 386 years later. Ibn al-Nafis also correctly described coronary circulation. His manuscripts were only discovered in European archives in 1924, hidden for centuries.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Ottoman", "Islam", "history"],
-      "ratio": "16:9"
+      "tags": ["Islam", "medicine", "IbnAlNafis", "science", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Amazing Facts About Islamic Astronomy",
-      "topic": "Islamic astronomy breakthroughs: Muslim astronomers corrected Ptolemy star catalog with their own observations, Al-Battani calculated the solar year with an error of only 2 minutes and 22 seconds, Muslim navigators used celestial navigation to sail across the Indian Ocean centuries before Europeans, and over 200 stars still carry their original Arabic names today",
-      "style": "digital art",
-      "voice": "en-US-AndrewNeural",
-      "num_slides": 6,
-      "tags": ["Islam", "astronomy", "science"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "5 Shocking Facts About the Spread of Islam",
-      "topic": "How Islam spread across the world: within 100 years of the Prophet death Islam had spread from Spain to China, the majority of early conversions happened through trade and peaceful interaction not conquest, Islam is now the fastest growing religion in the world, and Muslim traders brought Islam to Southeast Asia through commerce and good character",
+      "title": "The Geographical Fact About Mecca That Will Blow Your Mind",
+      "topic": "Mecca sits at the approximate geographic center of Earth's landmasses, a calculation verified by geologists using modern GIS mapping. The Grand Mosque in Mecca is the largest gathering place on Earth, holding up to 4 million people during Hajj. Muslims praying from every direction on Earth simultaneously form a massive synchronized circle around the Kaaba — the world's largest unified spiritual act.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "history", "religion"],
-      "ratio": "16:9"
+      "tags": ["Islam", "Mecca", "Qibla", "science", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Incredible Historical Facts About Prophet Muhammad",
-      "topic": "Historical facts about Prophet Muhammad: he was illiterate yet his teachings transformed world civilization, he established the first written constitution in history called the Constitution of Medina, he prohibited racism 1400 years before civil rights movements, and his last sermon declared the equality of all races and genders in one of history most progressive speeches",
+      "title": "The Greatest Library in Human History Was Islamic — Until Mongols Destroyed It",
+      "topic": "Baghdad's House of Wisdom, founded in 830 AD, held over 400,000 manuscripts — the largest collection of human knowledge in the world. Scholars from every religion worked together advancing mathematics, astronomy, medicine, and philosophy. When Mongols destroyed it in 1258, the Tigris River allegedly ran black with ink from the books thrown into it, setting global knowledge back by centuries.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Prophet", "Islam", "history"],
-      "ratio": "16:9"
+      "tags": ["Islam", "Baghdad", "HouseOfWisdom", "history", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "5 Facts About Ramadan That Non-Muslims Don't Know",
-      "topic": "Remarkable facts about Ramadan: fasting has been scientifically proven to trigger autophagy where cells clean themselves, over 1.8 billion people fast simultaneously making it the world largest synchronized spiritual practice, the Quran was first revealed during Ramadan, and Muslim-majority countries see significant decreases in crime rates during Ramadan",
+      "title": "Over 200 Stars in the Night Sky Still Have Their Original Arabic Names",
+      "topic": "More than 200 stars visible from Earth tonight still carry the Arabic names given to them by Islamic astronomers between 800 and 1200 AD — including Aldebaran, Betelgeuse, Altair, Vega, and Rigel. Muslim astronomers built the world's most accurate star catalogs, corrected Greek astronomical errors, and invented instruments that sailors used to navigate the globe for 500 years.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Ramadan", "Islam", "facts"],
-      "ratio": "16:9"
+      "tags": ["Islam", "astronomy", "stars", "science", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Muslim Contributions to Mathematics That Changed History",
-      "topic": "Mathematical gifts from Islamic civilization: the decimal number system used worldwide today was adopted from Muslim scholars, the word algorithm comes from the name Al-Khwarizmi, Islamic mathematicians developed trigonometry as a separate discipline, and the concept of zero as a number was formalized and transmitted through Arabic mathematics",
-      "style": "digital art",
-      "voice": "en-US-AndrewNeural",
-      "num_slides": 6,
-      "tags": ["Islam", "mathematics", "history"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "5 Incredible Muslim Women Who Changed History",
-      "topic": "Remarkable Muslim women throughout history: Khadijah was the world first investor in what would become Islam, Aisha narrated over 2000 hadiths and was a leading scholar and physician, Fatima al-Fihri founded the world first university in 859 AD, and Nana Asma in 19th century Nigeria led a network of women teachers that educated thousands",
+      "title": "The Muslim Traveller Who Crossed 75,000 Miles — 600 Years Before Trains Existed",
+      "topic": "Ibn Battuta, a 14th century Moroccan Muslim traveller, journeyed over 75,000 miles across 44 modern countries from 1325 to 1354 AD — the most any human had ever travelled in a single lifetime before the industrial age. He visited the courts of kings, survived shipwrecks and plagues, and his account Rihla remains the most detailed record of the medieval world ever written.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "women", "history"],
-      "ratio": "16:9"
+      "tags": ["Islam", "IbnBattuta", "travel", "history", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "Islam Saved Greek Philosophy When Europe Was Burning Books",
+      "topic": "When the Western Roman Empire collapsed and Europe entered the Dark Ages, Muslim scholars preserved and translated virtually every surviving Greek philosophical and scientific text. Without the Islamic Golden Age libraries, the works of Aristotle, Plato, Euclid, and Galen would have been lost forever. The European Renaissance was built on knowledge that returned to Europe through Arabic translations.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "philosophy", "Renaissance", "history", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "The First Modern Map of the World Was Made by a Muslim",
+      "topic": "Muhammad al-Idrisi created the most accurate world map in existence in 1154 AD for the Norman King Roger II of Sicily. His map was so precise that it was used by explorers and traders for 300 years. Al-Idrisi also wrote a comprehensive geography of the known world that described lands from West Africa to Southeast Asia in extraordinary detail.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "AlIdrisi", "map", "geography", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "Why Islamic Architecture Contains Mathematics That Scientists Are Still Studying",
+      "topic": "Geometric patterns in mosques built between 1000 and 1200 AD contain quasi-crystalline mathematical structures that Western scientists only discovered and named in 1984. The Alhambra Palace in Spain contains all 17 possible types of geometric symmetry — a mathematical concept not formally described in Western mathematics until 1891. These patterns were built purely by eye, compass, and ruler.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "architecture", "mathematics", "Alhambra", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "The Muslim General Who Defeated the Mongols When No One Thought It Was Possible",
+      "topic": "In 1260 AD at the Battle of Ain Jalut in Palestine, the Mamluk Muslim army under Sultan Qutuz defeated the Mongol forces — the first time the seemingly unstoppable Mongol empire had ever been defeated in open battle. The Mongols had already destroyed Baghdad, Russia, China, and Poland. This battle stopped the Mongol conquest of Africa and Europe.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "Mamluks", "Mongols", "history", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "The Quran Mentioned the Big Bang 1400 Years Before Scientists Discovered It",
+      "topic": "The Quran states in chapter 21 verse 30 that the heavens and earth were once one single entity that was then split apart — a description that parallels the Big Bang theory confirmed by science in the 20th century. It also describes the expanding universe in chapter 51 verse 47, a phenomenon only measured by Edwin Hubble in 1929.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Quran", "science", "BigBang", "Islam", "IslamicFacts"],
+      "ratio": "9:16"
     }
   ],
-
   "malam": [
     {
-      "title": "5 Mysterious Facts About the Kaaba and Black Stone",
-      "topic": "Mysterious facts about the Kaaba: it has been rebuilt multiple times including once by the Prophet himself before prophethood, the Black Stone was reportedly stolen by the Qarmatians for 22 years in the 10th century, Muslims circle the Kaaba counterclockwise matching the orbit of electrons around atoms and planets around stars, and the Kaaba exact orientation aligns with celestial phenomena",
+      "title": "The Quran Has a Mathematical Pattern That Is Statistically Impossible to Fake",
+      "topic": "The word day appears 365 times in the Quran, the word month appears 12 times, and the word sea appears 32 times while the word land appears 13 times — giving a ratio of 71.1% sea to 28.9% land, matching modern satellite measurements of Earth's surface. These numerical patterns repeat across hundreds of Quranic word pairs and were documented by researchers using computer analysis.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Kaaba", "Islam", "mystery"],
-      "ratio": "16:9"
+      "tags": ["Quran", "mathematics", "miracle", "Islam", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Unbelievable Facts About Islamic Calligraphy",
-      "topic": "Islamic calligraphy facts: it is considered the highest art form in Islamic culture because it represents the word of God, calligraphers spent decades mastering their craft, the art of Arabic calligraphy influenced European typography and design, and a single piece of calligraphy can take months or years to complete with hundreds of individual decisions about spacing and proportion",
+      "title": "The Real Reason the Ottoman Empire Lasted 623 Years When Every Other Empire Collapsed",
+      "topic": "The Ottoman Empire lasted from 1299 to 1922 — 623 years — outlasting the Roman, Mongol, and British Empires at their peaks. At its height it controlled 3 continents, 29 provinces, and 50 million people. Historians credit its longevity to the millet system allowing religious minorities full autonomy, a merit-based government structure, and a devshirme system producing loyal multi-ethnic administrators.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "calligraphy", "art"],
-      "ratio": "16:9"
+      "tags": ["Islam", "Ottoman", "history", "empire", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "5 Facts About Islamic Finance That Will Surprise You",
-      "topic": "Islamic finance facts reshaping the global economy: the Islamic finance industry manages over 3 trillion dollars in assets worldwide, it prohibits interest making it inherently more ethical than conventional banking, Islamic banks survived the 2008 financial crisis better than conventional banks, and non-Muslim majority countries like the UK and Luxembourg have issued Islamic bonds called sukuk",
+      "title": "Islam Secretly Powered the European Renaissance and Nobody Taught You This",
+      "topic": "Roger Bacon, Leonardo da Vinci, and Copernicus all cited Islamic scholars directly in their works. Al-Hazen's Book of Optics taught Europeans how lenses work, leading to telescopes and microscopes. Al-Jazari's mechanical engineering book inspired Renaissance machines. The Toledo School of Translators spent 200 years converting Arabic science texts into Latin — the true foundation of the European intellectual revolution.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "finance", "economics"],
-      "ratio": "16:9"
+      "tags": ["Islam", "Renaissance", "history", "science", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Shocking Facts About the Library of Baghdad",
-      "topic": "The House of Wisdom in Baghdad facts: it was the largest library in the world containing over 400000 manuscripts, scholars from every religion and ethnicity worked together translating and advancing knowledge, when Mongols destroyed it in 1258 the Tigris River reportedly ran black with ink from the books, and its destruction set back global scientific progress by an estimated 200 years",
+      "title": "The Ancient Secrets Inside the Kaaba That Science Just Confirmed",
+      "topic": "The Kaaba is built at a precise angle that aligns it with the rising of the star Canopus and the direction of true north, suggesting advanced astronomical knowledge. Geological surveys show the area around the Kaaba sits on one of the most geologically stable zones in the Arabian Peninsula. The Black Stone embedded in its corner is believed to be a meteorite, with spectral analysis showing composition unlike any known Earth mineral.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "history", "knowledge"],
-      "ratio": "16:9"
+      "tags": ["Islam", "Kaaba", "science", "Mecca", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "5 Facts About Islamic Prayer That Science Confirms",
-      "topic": "Scientific benefits of Islamic prayer Salah: the prostration position increases blood flow to the brain, the physical movements of prayer provide the equivalent of light yoga stretching five times daily, regular prayer times regulate circadian rhythms and sleep cycles, and the act of washing before prayer called wudu has been shown to reduce stress hormones",
+      "title": "Islam Is the Fastest Growing Religion on Earth — The Statistics Are Shocking",
+      "topic": "Islam is projected to overtake Christianity as the world's largest religion by 2075 according to Pew Research Center. There are currently 1.9 billion Muslims — about 25% of humanity. The fastest growth is happening not through missionary work but through birth rates and conversion, with the United States seeing over 20,000 conversions to Islam every year.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "prayer", "science"],
-      "ratio": "16:9"
+      "tags": ["Islam", "growth", "statistics", "religion", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "Mind-Blowing Facts About Zakat and Islamic Charity",
-      "topic": "Zakat and Islamic charity facts: if zakat were properly collected and distributed it could end global poverty according to economists, Muslims give more to charity per capita than any other religious group in many studies, the concept of waqf Islamic endowment funded hospitals schools and public infrastructure for centuries, and zakat is one of the five pillars making charity a mandatory act of worship not optional",
+      "title": "The Muslim Women That History Deliberately Forgot",
+      "topic": "Aisha bint Abi Bakr narrated over 2,210 hadiths and was considered the greatest Islamic scholar of her generation. Khadijah bint Khuwaylid was a successful international merchant who employed the Prophet Muhammad before becoming the first Muslim. Rufaida al-Aslamiyya established the first field hospital and trained the first Muslim nurses in the 7th century.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "zakat", "charity"],
-      "ratio": "16:9"
+      "tags": ["Islam", "women", "history", "scholars", "IslamicFacts"],
+      "ratio": "9:16"
     },
     {
-      "title": "5 Incredible Facts About Muslim Spain",
-      "topic": "Al-Andalus Muslim Spain facts: for nearly 800 years Muslim Spain was the most advanced civilization in Europe, the city of Cordoba had street lighting and sewage systems when London was still a muddy village, the famous 12th century scholar Ibn Rushd saved Aristotle works for Western civilization, and Muslim Spanish scholars translated Greek Roman and Islamic texts that sparked the European Renaissance",
+      "title": "More Than 200 Stars Tonight Still Have Arabic Names — Here Is the Full Story",
+      "topic": "Aldebaran, Betelgeuse, Rigel, Altair, Vega, Deneb, Fomalhaut — these and over 200 other stars carry Arabic names given by Islamic astronomers during the Golden Age. Muslim stargazers built the world's most sophisticated observatories, corrected Ptolemy's star catalog errors, and created astronomical tables so accurate that NASA has traced the calculations and confirmed their precision to modern standards.",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["Islam", "Spain", "history"],
-      "ratio": "16:9"
+      "tags": ["Islam", "astronomy", "stars", "science", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "The Islamic Golden Age: 500 Years That Changed Human History Forever",
+      "topic": "From 800 to 1300 AD, the Islamic world produced breakthroughs in medicine, mathematics, astronomy, chemistry, engineering, and philosophy that no other civilization matched. Baghdad, Cairo, and Cordoba were the intellectual capitals of the planet. Historians estimate that without the Islamic Golden Age, Europe's Scientific Revolution would have been delayed by at least 200 to 300 years.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "GoldenAge", "history", "science", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "The First Chemistry Lab in History Was Built by a Muslim Scientist",
+      "topic": "Jabir ibn Hayyan, known in Europe as Geber, built the first systematic chemistry laboratory in 8th century Iraq and is considered the father of chemistry. He discovered sulfuric acid, hydrochloric acid, and nitric acid. He developed the process of distillation, crystallization, and sublimation. The words alkali, alcohol, and alchemy all come directly from Arabic terms he coined.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "chemistry", "Jabir", "science", "IslamicFacts"],
+      "ratio": "9:16"
+    },
+    {
+      "title": "The Muslim Mechanical Engineer Who Built Robots in the 12th Century",
+      "topic": "Al-Jazari, a 12th century Muslim engineer from Turkey, built programmable mechanical robots, automatic hand-washing machines, and a musical automaton boat with four robot musicians 800 years before the industrial revolution. His Book of Ingenious Mechanical Devices, written in 1206, described 50 mechanical inventions including the first known crankshaft — still the basis of all car engines today.",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "AlJazari", "robotics", "engineering", "IslamicFacts"],
+      "ratio": "9:16"
     }
   ]
 }

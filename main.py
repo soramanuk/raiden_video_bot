@@ -339,24 +339,29 @@ def list_models():
 
 @app.post("/generate-script")
 async def generate_script(req: ScriptRequest):
-    # FIX: Force English narration — topik Islam dengan bahasa Inggris
-    prompt = f"""You are a professional video scriptwriter. Create a script for a video titled "{req.title}" about: {req.topic}
+    # FIX v3.4: Casual viral English slang — TikTok/Reels/Shorts style narration
+    prompt = f"""You are a viral short-form video scriptwriter for TikTok, Instagram Reels, and YouTube Shorts. Write a script for a video titled "{req.title}" about: {req.topic}
 
 Create exactly {req.num_slides} slides. Respond ONLY in JSON (no markdown/backticks), format:
 
 {{
   "slides": [
     {{
-      "script": "English narration text that will be read as voice-over (1-3 sentences, engaging and informative)",
-      "image_prompt": "Detailed visual description in English, style: {req.style}",
+      "script": "Casual spoken English narration, 1-3 sentences max. Use viral TikTok tone: punchy, conversational, shocking facts, rhetorical questions. Like you are talking directly to the viewer. No formal language.",
+      "image_prompt": "Detailed cinematic visual description in English matching the slide content, {req.style} style",
       "duration": 5
     }}
   ]
 }}
 
-Rules:
-- script: MUST be in English, natural and engaging, educational tone
-- image_prompt: detailed visual description in English matching slide content, {req.style} style
+STRICT RULES for script field:
+- Write in casual spoken English — contractions OK (didn't, wasn't, they've)
+- Open with a hook: "Bro...", "Wait, what?", "Nobody talks about this but...", "This fact will break your brain:", "Here's something wild:", "Did you know that...", "Plot twist:"
+- Keep sentences SHORT and punchy — like you're telling a friend something crazy
+- Use rhetorical questions to keep viewer hooked: "And get this...", "But here's the kicker:", "So why does nobody talk about this?"
+- End the LAST slide with a call-to-action like: "Follow for more wild Islamic history facts." or "Drop a comment if this blew your mind."
+- NEVER use formal academic language, passive voice, or long complex sentences
+- image_prompt: detailed visual description in English, {req.style} style, cinematic composition
 - duration: 4-8 seconds depending on script length
 - Do NOT add any explanation outside the JSON"""
 
@@ -729,8 +734,9 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
     try:
         for i, s in enumerate(slides):
             seg = str(tmp / f"seg_{i:02d}.mp4")
-            # FIX: Hapus -t duration. Panjang slide = panjang audio nyata + 0.5s apad.
+            # FIX v3.4: Hapus -t duration. Panjang slide = panjang audio nyata + 2s apad.
             # -shortest berhenti saat audio habis — narasi tidak terpotong lagi.
+            # tpad=stop_mode=clone:stop_duration=2 extend video frame untuk sync dengan apad.
             cmd = [
                 FFMPEG_BIN, "-y",
                 "-loop", "1", "-i", s["img"],
@@ -738,16 +744,17 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
                 "-filter_complex",
                 (
                     f"[0:v]scale={width}:{height}:force_original_aspect_ratio=decrease,"
-                    f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1[v];"
-                    # 1.5s tail silence agar kata terakhir tidak terpotong sama sekali
-                    f"[1:a]apad=pad_dur=1.5[a]"
+                    f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,"
+                    # tpad: clone frame terakhir selama 2s agar sync dengan apad audio
+                    f"tpad=stop_mode=clone:stop_duration=2[v];"
+                    # apad 2s: silence di ekor audio agar kata terakhir full terdengar
+                    f"[1:a]apad=pad_dur=2[a]"
                 ),
                 "-map", "[v]", "-map", "[a]",
                 "-c:v", "libx264", "-tune", "stillimage",
                 "-c:a", "aac", "-b:a", "128k",
                 "-pix_fmt", "yuv420p",
                 # -shortest: stop saat stream terpendek habis = audio+pad selesai
-                # image loop infinite jadi audio yang jadi anchor durasi
                 "-shortest", seg,
             ]
             proc = await asyncio.create_subprocess_exec(
@@ -768,7 +775,14 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
 
         concat_cmd = [
             FFMPEG_BIN, "-y", "-f", "concat", "-safe", "0",
-            "-i", list_file, "-c", "copy", output,
+            "-i", list_file,
+            # FIX v3.4: Re-encode saat concat (bukan -c copy) agar tidak ada
+            # frame drop / video terpotong di ujung akibat keyframe mismatch.
+            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+            "-c:a", "aac", "-b:a", "128k",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
+            output,
         ]
         proc = await asyncio.create_subprocess_exec(
             *concat_cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
