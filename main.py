@@ -734,33 +734,32 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
     try:
         for i, s in enumerate(slides):
             seg = str(tmp / f"seg_{i:02d}.mp4")
-            # FIX v3.4: Hapus -t duration. Panjang slide = panjang audio nyata + 2s apad.
-            # -shortest berhenti saat audio habis — narasi tidak terpotong lagi.
-            # tpad=stop_mode=clone:stop_duration=2 extend video frame untuk sync dengan apad.
+            # FIX v3.5: Ukur durasi audio nyata, set -t eksplisit pada image loop.
+            # Tidak ada infinite loop hang, tidak perlu -shortest atau tpad.
+            # ultrafast preset agar tidak timeout di Railway.
+            audio_dur = await get_audio_duration(s["audio"])
+            slide_dur = round(audio_dur + 2.0, 3)  # +2s tail agar kata terakhir full
             cmd = [
                 FFMPEG_BIN, "-y",
-                "-loop", "1", "-i", s["img"],
+                "-loop", "1", "-t", str(slide_dur), "-i", s["img"],
                 "-i", s["audio"],
                 "-filter_complex",
                 (
                     f"[0:v]scale={width}:{height}:force_original_aspect_ratio=decrease,"
-                    f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,"
-                    # tpad: clone frame terakhir selama 2s agar sync dengan apad audio
-                    f"tpad=stop_mode=clone:stop_duration=2[v];"
-                    # apad 2s: silence di ekor audio agar kata terakhir full terdengar
+                    f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1[v];"
                     f"[1:a]apad=pad_dur=2[a]"
                 ),
                 "-map", "[v]", "-map", "[a]",
-                "-c:v", "libx264", "-tune", "stillimage",
+                "-t", str(slide_dur),
+                "-c:v", "libx264", "-preset", "ultrafast", "-tune", "stillimage",
                 "-c:a", "aac", "-b:a", "128k",
                 "-pix_fmt", "yuv420p",
-                # -shortest: stop saat stream terpendek habis = audio+pad selesai
-                "-shortest", seg,
+                seg,
             ]
             proc = await asyncio.create_subprocess_exec(
                 *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
             )
-            _, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
+            _, stderr = await asyncio.wait_for(proc.communicate(), timeout=180)
             if proc.returncode != 0:
                 raise RuntimeError(
                     f"ffmpeg gagal encode slide {i} (exit {proc.returncode}): "
