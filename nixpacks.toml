@@ -1,9 +1,11 @@
 [phases.setup]
-# FIX #2: tambah dejavu_fonts + fontconfig agar FFmpeg drawtext tidak gagal di container
-nixPkgs = ["python313", "ffmpeg", "fontconfig", "dejavu_fonts"]
+nixPkgs = ["python313", "ffmpeg", "fontconfig", "dejavu_fonts", "liberation_ttf"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = [
+  "pip install -r requirements.txt",
+  "fc-cache -fv"
+]
 
 [start]
 cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
