@@ -714,16 +714,50 @@ async def download_image(prompt: str, width: int, height: int, out_path: str):
 
 
 async def get_audio_duration(audio_path: str) -> float:
+    """
+    Ukur durasi audio dengan ffprobe. Fallback ke mutagen, lalu ke 8.0s default.
+    Log hasilnya agar mudah debug jika ada slide terpotong.
+    """
+    _render_log = logging.getLogger("render")
+    # Method 1: ffprobe (paling akurat)
     try:
         proc = await asyncio.create_subprocess_exec(
-            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            FFMPEG_BIN.replace("ffmpeg", "ffprobe"), "-v", "error",
+            "-show_entries", "format=duration",
             "-of", "default=noprint_wrappers=1:nokey=1", audio_path,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
         )
         out, _ = await asyncio.wait_for(proc.communicate(), timeout=30)
-        return float(out.decode().strip())
-    except (ValueError, asyncio.TimeoutError, OSError):
-        return 5.0
+        dur = float(out.decode().strip())
+        if dur > 0.5:
+            _render_log.info(f"audio_dur ffprobe: {dur:.2f}s — {audio_path}")
+            return dur
+    except Exception as e:
+        _render_log.warning(f"ffprobe gagal: {e}")
+
+    # Method 2: mutagen (pure Python, tidak butuh ffprobe binary)
+    try:
+        from mutagen.mp3 import MP3
+        audio = MP3(audio_path)
+        dur = audio.info.length
+        if dur > 0.5:
+            _render_log.info(f"audio_dur mutagen: {dur:.2f}s — {audio_path}")
+            return dur
+    except Exception as e:
+        _render_log.warning(f"mutagen gagal: {e}")
+
+    # Method 3: file size heuristic (128kbps mp3 = ~16KB/s)
+    try:
+        size_bytes = os.path.getsize(audio_path)
+        dur = size_bytes / 16000.0
+        if dur > 0.5:
+            _render_log.warning(f"audio_dur heuristic: {dur:.2f}s — {audio_path}")
+            return dur
+    except Exception:
+        pass
+
+    _render_log.error(f"audio_dur fallback 8.0s — {audio_path}")
+    return 8.0
 
 
 async def concat_slides(slides: list, width: int, height: int, output: str):
@@ -738,7 +772,8 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
             # Tidak ada infinite loop hang, tidak perlu -shortest atau tpad.
             # ultrafast preset agar tidak timeout di Railway.
             audio_dur = await get_audio_duration(s["audio"])
-            slide_dur = round(audio_dur + 2.0, 3)  # +2s tail agar kata terakhir full
+            slide_dur = round(audio_dur + 3.0, 3)  # +3s tail — extra buffer untuk gTTS silence
+            s["_dur"] = slide_dur  # simpan untuk referensi total duration
             cmd = [
                 FFMPEG_BIN, "-y",
                 "-loop", "1", "-t", str(slide_dur), "-i", s["img"],
@@ -772,14 +807,15 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
             for seg in segment_paths:
                 f.write(f"file '{seg}'\n")
 
+        # Hitung total durasi semua segment untuk guard di output akhir
+        total_dur = sum(s.get("_dur", 0) for s in slides)
+
         concat_cmd = [
             FFMPEG_BIN, "-y", "-f", "concat", "-safe", "0",
             "-i", list_file,
-            # FIX v3.4: Re-encode saat concat (bukan -c copy) agar tidak ada
-            # frame drop / video terpotong di ujung akibat keyframe mismatch.
-            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-            "-c:a", "aac", "-b:a", "128k",
-            "-pix_fmt", "yuv420p",
+            # FIX v3.5: -c copy cukup karena semua segment sudah seragam
+            # (same encoder, same params, same fps). Tidak ada keyframe mismatch.
+            "-c", "copy",
             "-movflags", "+faststart",
             output,
         ]
