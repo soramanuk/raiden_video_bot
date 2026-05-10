@@ -511,12 +511,11 @@ async def do_render(job_id: str, req: RenderRequest):
             if not valid:
                 fallback_slides.append(i + 1)
 
-            duration = await get_audio_duration(str(audio_path))
-            duration = max(duration + 0.5, slide.duration)
+            # duration dari AI tidak dipakai untuk cut — panjang slide
+            # ditentukan 100% dari audio nyata + apad di concat_slides.
             inputs_for_ffmpeg.append({
                 "img": str(img_path),
                 "audio": str(audio_path),
-                "duration": duration,
             })
             _img_logger.debug(f"Slide {i+1}/{total} siap")
 
@@ -730,16 +729,26 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
     try:
         for i, s in enumerate(slides):
             seg = str(tmp / f"seg_{i:02d}.mp4")
+            # FIX: Hapus -t duration. Panjang slide = panjang audio nyata + 0.5s apad.
+            # -shortest berhenti saat audio habis — narasi tidak terpotong lagi.
             cmd = [
-                FFMPEG_BIN, "-y", "-loop", "1", "-i", s["img"], "-i", s["audio"],
+                FFMPEG_BIN, "-y",
+                "-loop", "1", "-i", s["img"],
+                "-i", s["audio"],
+                "-filter_complex",
+                (
+                    f"[0:v]scale={width}:{height}:force_original_aspect_ratio=decrease,"
+                    f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1[v];"
+                    # 1.5s tail silence agar kata terakhir tidak terpotong sama sekali
+                    f"[1:a]apad=pad_dur=1.5[a]"
+                ),
+                "-map", "[v]", "-map", "[a]",
                 "-c:v", "libx264", "-tune", "stillimage",
                 "-c:a", "aac", "-b:a", "128k",
                 "-pix_fmt", "yuv420p",
-                "-vf", (
-                    f"scale={width}:{height}:force_original_aspect_ratio=decrease,"
-                    f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1"
-                ),
-                "-t", str(s["duration"]), "-shortest", seg,
+                # -shortest: stop saat stream terpendek habis = audio+pad selesai
+                # image loop infinite jadi audio yang jadi anchor durasi
+                "-shortest", seg,
             ]
             proc = await asyncio.create_subprocess_exec(
                 *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
