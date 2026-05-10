@@ -4,198 +4,198 @@
 
   "pagi": [
     {
-      "title": "5 Mind-Blowing Facts About the Human Brain",
-      "topic": "fascinating neuroscience facts: the brain generates enough electricity to power a light bulb, neurons fire 200 times per second, the brain is 73% water, and memory is not stored in one place",
+      "title": "5 Shocking Facts About the Golden Age of Islam",
+      "topic": "The Islamic Golden Age (8th-13th century) produced breakthroughs that shaped modern civilization: algebra was invented by Al-Khwarizmi, Ibn Sina wrote the Canon of Medicine used for 600 years, Muslim scholars preserved Greek knowledge and translated it for Europe, and the first university in the world was founded in Fez Morocco in 859 AD",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["science", "brain", "facts"],
+      "tags": ["Islam", "history", "science"],
       "ratio": "16:9"
     },
     {
-      "title": "Crazy Facts About Space That Will Shock You",
-      "topic": "unbelievable space facts: a day on Venus is longer than its year, neutron stars spin 700 times per second, there are more stars than grains of sand on Earth, space smells like seared steak",
+      "title": "Amazing Muslim Inventions That Changed the World",
+      "topic": "Inventions from Muslim civilization that modern people use every day: coffee was first discovered and cultivated in Yemen, hospitals with trained doctors were established in Baghdad in 805 AD, windmills were invented in Persia, and the first systematic anatomy book with illustrations came from Ibn al-Nafis who also discovered pulmonary circulation",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["space", "science", "facts"],
+      "tags": ["Islam", "inventions", "history"],
       "ratio": "16:9"
     },
     {
-      "title": "5 Facts About Animals That Seem Impossible",
-      "topic": "shocking animal facts: octopuses have 3 hearts and blue blood, mantis shrimp can punch with the force of a bullet, tardigrades can survive in outer space, crows remember human faces",
+      "title": "5 Facts About the Quran That Will Amaze You",
+      "topic": "Remarkable facts about the Quran: it has been memorized verbatim by millions of people worldwide called Hafiz making it the most memorized book in history, it was preserved orally and in writing simultaneously from the beginning, its description of embryonic development matches modern science, and it contains numerical patterns discovered by scholars",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["animals", "nature", "facts"],
+      "tags": ["Quran", "Islam", "facts"],
       "ratio": "16:9"
     },
     {
-      "title": "Unbelievable Facts About the Deep Ocean",
-      "topic": "deep sea mysteries: 95% of the ocean is unexplored, creatures in the Mariana Trench survive crushing pressure, bioluminescent organisms create their own light, the ocean floor has mountains taller than Everest",
+      "title": "Incredible Facts About the City of Mecca",
+      "topic": "Mind-blowing facts about Mecca: the Kaaba is the most visited site on Earth with over 2 million pilgrims during Hajj alone, the Grand Mosque is the largest mosque in the world, Mecca sits at the geographic center of the world landmasses, and the Black Stone called Hajar Aswad is believed to have fallen from paradise",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["ocean", "science", "facts"],
+      "tags": ["Mecca", "Islam", "pilgrimage"],
       "ratio": "16:9"
     },
     {
-      "title": "5 Facts About Time That Will Bend Your Mind",
-      "topic": "mind-bending time facts: time moves slower near massive objects, the past present and future exist simultaneously according to physics, clocks on GPS satellites run faster than on Earth, Cleopatra lived closer to the Moon landing than to the pyramids",
+      "title": "5 Muslim Scholars Who Were Centuries Ahead",
+      "topic": "Muslim scholars who made discoveries centuries before Western science: Ibn al-Haytham proved light travels from objects to the eye 1000 years before Newton, Al-Biruni calculated the Earth circumference with stunning accuracy in 1000 AD, Ibn Khaldun founded the science of sociology in the 14th century, and Jabir ibn Hayyan created the foundations of modern chemistry",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["physics", "time", "facts"],
+      "tags": ["Islam", "scholars", "science"],
       "ratio": "16:9"
     },
     {
-      "title": "Wild Facts About the Human Body You Never Knew",
-      "topic": "bizarre human body facts: your stomach gets a new lining every 3-4 days, bones are 4 times stronger than concrete, the human eye can detect a candle flame 14 miles away, you produce enough saliva in a lifetime to fill two swimming pools",
+      "title": "Surprising Facts About Islamic Architecture",
+      "topic": "Islamic architecture facts that defy imagination: the Alhambra palace in Spain uses geometric patterns with mathematical precision, muqarnas honeycomb vaulting requires complex 3D geometry, the Great Mosque of Djenne in Mali is the largest mud-brick building in the world, and Islamic buildings use passive cooling systems that keep interiors cool without electricity",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["biology", "body", "facts"],
+      "tags": ["Islam", "architecture", "history"],
       "ratio": "16:9"
     },
     {
-      "title": "5 Historical Facts That Sound Fake But Are True",
-      "topic": "shocking history facts: ancient Romans used crushed mouse brains as toothpaste, Napoleon was once attacked by rabbits, Oxford University is older than the Aztec Empire, forks were once considered sacrilegious in Europe",
+      "title": "5 Facts About Islamic Medicine That Saved Millions",
+      "topic": "Islamic medical contributions that saved humanity: Ibn Sina Canon of Medicine was the standard medical textbook in Europe for 600 years, Muslim physicians performed the first successful cataract surgeries, Al-Zahrawi wrote the first illustrated surgical encyclopedia, and Islamic hospitals in Baghdad had separate wards for different diseases 1000 years before European hospitals did",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["history", "facts", "education"],
+      "tags": ["Islam", "medicine", "history"],
       "ratio": "16:9"
     }
   ],
 
   "siang": [
     {
-      "title": "5 Facts About Quantum Physics That Break Reality",
-      "topic": "quantum mechanics facts that defy common sense: particles can be in two places at once, observing a particle changes its behavior, quantum entanglement allows instant communication across any distance, Schrodinger's cat thought experiment explained",
-      "style": "digital art",
-      "voice": "en-US-AndrewNeural",
-      "num_slides": 6,
-      "tags": ["physics", "quantum", "science"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Incredible Facts About the Universe's Size",
-      "topic": "universe scale facts: the observable universe is 93 billion light-years across, there are more galaxies than grains of sand on all Earth's beaches, light from the Sun takes 8 minutes to reach Earth, the Milky Way would take 100,000 years to cross at light speed",
+      "title": "5 Facts About the Ottoman Empire That Shocked the World",
+      "topic": "Ottoman Empire facts: at its peak it covered 3 continents and 32 provinces, Suleiman the Magnificent oversaw the construction of more than 300 mosques schools and bridges, the Ottomans granted religious freedom to Jews and Christians within their empire, and Ottoman engineers built complex waterworks and road systems centuries ahead of Europe",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["universe", "astronomy", "facts"],
+      "tags": ["Ottoman", "Islam", "history"],
       "ratio": "16:9"
     },
     {
-      "title": "5 Facts About DNA That Will Blow Your Mind",
-      "topic": "DNA facts: if you uncoiled all the DNA in your body it would stretch to Pluto and back 17 times, humans share 60% DNA with bananas, DNA can store all internet data in a teaspoon, DNA degrades after 6.8 million years",
+      "title": "Amazing Facts About Islamic Astronomy",
+      "topic": "Islamic astronomy breakthroughs: Muslim astronomers corrected Ptolemy star catalog with their own observations, Al-Battani calculated the solar year with an error of only 2 minutes and 22 seconds, Muslim navigators used celestial navigation to sail across the Indian Ocean centuries before Europeans, and over 200 stars still carry their original Arabic names today",
       "style": "digital art",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["biology", "DNA", "science"],
+      "tags": ["Islam", "astronomy", "science"],
       "ratio": "16:9"
     },
     {
-      "title": "Shocking Facts About Artificial Intelligence",
-      "topic": "AI facts that seem like science fiction: AI can detect cancer more accurately than doctors, an AI wrote a novel that almost won a literary prize, AI can predict earthquakes and solar flares, machines can now dream and hallucinate just like humans",
-      "style": "digital art",
-      "voice": "en-US-AndrewNeural",
-      "num_slides": 6,
-      "tags": ["AI", "technology", "science"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "5 Facts About Black Holes That Defy Logic",
-      "topic": "black hole facts: time stops at the event horizon, a black hole the size of a coin would have the mass of Earth, black holes are not actually holes they are incredibly dense objects, Stephen Hawking proved black holes can slowly evaporate",
+      "title": "5 Shocking Facts About the Spread of Islam",
+      "topic": "How Islam spread across the world: within 100 years of the Prophet death Islam had spread from Spain to China, the majority of early conversions happened through trade and peaceful interaction not conquest, Islam is now the fastest growing religion in the world, and Muslim traders brought Islam to Southeast Asia through commerce and good character",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["black holes", "space", "physics"],
+      "tags": ["Islam", "history", "religion"],
       "ratio": "16:9"
     },
     {
-      "title": "Mind-Blowing Facts About Mathematics",
-      "topic": "math facts that seem impossible: there are more possible chess games than atoms in the observable universe, infinity comes in different sizes, 0.999 repeating equals exactly 1, the number googol has more digits than atoms in the universe",
-      "style": "digital art",
-      "voice": "en-US-AndrewNeural",
-      "num_slides": 6,
-      "tags": ["math", "science", "facts"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "5 Facts About Volcanoes That Will Surprise You",
-      "topic": "volcano facts: there are over 1,500 potentially active volcanoes on Earth, underwater volcanoes create new islands, volcanic lightning occurs in eruption clouds, the largest volcano in the solar system is on Mars and is 3 times taller than Everest",
+      "title": "Incredible Historical Facts About Prophet Muhammad",
+      "topic": "Historical facts about Prophet Muhammad: he was illiterate yet his teachings transformed world civilization, he established the first written constitution in history called the Constitution of Medina, he prohibited racism 1400 years before civil rights movements, and his last sermon declared the equality of all races and genders in one of history most progressive speeches",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["volcanoes", "geology", "facts"],
+      "tags": ["Prophet", "Islam", "history"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Facts About Ramadan That Non-Muslims Don't Know",
+      "topic": "Remarkable facts about Ramadan: fasting has been scientifically proven to trigger autophagy where cells clean themselves, over 1.8 billion people fast simultaneously making it the world largest synchronized spiritual practice, the Quran was first revealed during Ramadan, and Muslim-majority countries see significant decreases in crime rates during Ramadan",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Ramadan", "Islam", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Muslim Contributions to Mathematics That Changed History",
+      "topic": "Mathematical gifts from Islamic civilization: the decimal number system used worldwide today was adopted from Muslim scholars, the word algorithm comes from the name Al-Khwarizmi, Islamic mathematicians developed trigonometry as a separate discipline, and the concept of zero as a number was formalized and transmitted through Arabic mathematics",
+      "style": "digital art",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "mathematics", "history"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Incredible Muslim Women Who Changed History",
+      "topic": "Remarkable Muslim women throughout history: Khadijah was the world first investor in what would become Islam, Aisha narrated over 2000 hadiths and was a leading scholar and physician, Fatima al-Fihri founded the world first university in 859 AD, and Nana Asma in 19th century Nigeria led a network of women teachers that educated thousands",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["Islam", "women", "history"],
       "ratio": "16:9"
     }
   ],
 
   "malam": [
     {
-      "title": "5 Creepy Facts About the Human Body at Night",
-      "topic": "what happens to your body while you sleep: your brain removes toxins, you grow slightly taller, your body temperature drops, you can have up to 7 dreams per night, sleep paralysis is your brain keeping you from acting out dreams",
+      "title": "5 Mysterious Facts About the Kaaba and Black Stone",
+      "topic": "Mysterious facts about the Kaaba: it has been rebuilt multiple times including once by the Prophet himself before prophethood, the Black Stone was reportedly stolen by the Qarmatians for 22 years in the 10th century, Muslims circle the Kaaba counterclockwise matching the orbit of electrons around atoms and planets around stars, and the Kaaba exact orientation aligns with celestial phenomena",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["sleep", "biology", "facts"],
+      "tags": ["Kaaba", "Islam", "mystery"],
       "ratio": "16:9"
     },
     {
-      "title": "Unbelievable Facts About Dreams and the Brain",
-      "topic": "dream science facts: blind people dream with other senses, you cannot dream of a face you have never seen, some people dream in black and white, lucid dreaming can be trained, dreams can solve complex problems and inspire great inventions",
+      "title": "Unbelievable Facts About Islamic Calligraphy",
+      "topic": "Islamic calligraphy facts: it is considered the highest art form in Islamic culture because it represents the word of God, calligraphers spent decades mastering their craft, the art of Arabic calligraphy influenced European typography and design, and a single piece of calligraphy can take months or years to complete with hundreds of individual decisions about spacing and proportion",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["dreams", "neuroscience", "facts"],
+      "tags": ["Islam", "calligraphy", "art"],
       "ratio": "16:9"
     },
     {
-      "title": "5 Facts About Stars That Sound Like Fantasy",
-      "topic": "star facts: the sun is so large that 1.3 million Earths could fit inside, some stars are older than the universe appears to allow, magnetars have magnetic fields so strong they could erase credit cards from halfway to the Moon, stars can orbit each other",
+      "title": "5 Facts About Islamic Finance That Will Surprise You",
+      "topic": "Islamic finance facts reshaping the global economy: the Islamic finance industry manages over 3 trillion dollars in assets worldwide, it prohibits interest making it inherently more ethical than conventional banking, Islamic banks survived the 2008 financial crisis better than conventional banks, and non-Muslim majority countries like the UK and Luxembourg have issued Islamic bonds called sukuk",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["stars", "astronomy", "facts"],
+      "tags": ["Islam", "finance", "economics"],
       "ratio": "16:9"
     },
     {
-      "title": "Shocking Facts About Ancient Civilizations",
-      "topic": "ancient world facts: ancient Egyptians slept on stone pillows, the Roman Empire had a welfare system, ancient Greeks believed the brain was for cooling the blood, the Antikythera mechanism is a 2000-year-old analog computer",
+      "title": "Shocking Facts About the Library of Baghdad",
+      "topic": "The House of Wisdom in Baghdad facts: it was the largest library in the world containing over 400000 manuscripts, scholars from every religion and ethnicity worked together translating and advancing knowledge, when Mongols destroyed it in 1258 the Tigris River reportedly ran black with ink from the books, and its destruction set back global scientific progress by an estimated 200 years",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["history", "ancient", "facts"],
+      "tags": ["Islam", "history", "knowledge"],
       "ratio": "16:9"
     },
     {
-      "title": "5 Facts About Light That Will Change How You See",
-      "topic": "light and optics facts: light slows down when passing through glass, a photon takes 100,000 years to travel from the Sun's core to its surface but only 8 minutes to reach Earth, you can see 2.5 million light-years with the naked eye, darkness travels faster than light",
+      "title": "5 Facts About Islamic Prayer That Science Confirms",
+      "topic": "Scientific benefits of Islamic prayer Salah: the prostration position increases blood flow to the brain, the physical movements of prayer provide the equivalent of light yoga stretching five times daily, regular prayer times regulate circadian rhythms and sleep cycles, and the act of washing before prayer called wudu has been shown to reduce stress hormones",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["light", "physics", "facts"],
+      "tags": ["Islam", "prayer", "science"],
       "ratio": "16:9"
     },
     {
-      "title": "Mind-Bending Facts About Parallel Universes",
-      "topic": "multiverse theory facts: the many-worlds interpretation suggests every quantum event creates a new universe, there may be infinite copies of you making different choices, string theory requires 11 dimensions, cosmic inflation suggests our universe is one of countless bubbles",
+      "title": "Mind-Blowing Facts About Zakat and Islamic Charity",
+      "topic": "Zakat and Islamic charity facts: if zakat were properly collected and distributed it could end global poverty according to economists, Muslims give more to charity per capita than any other religious group in many studies, the concept of waqf Islamic endowment funded hospitals schools and public infrastructure for centuries, and zakat is one of the five pillars making charity a mandatory act of worship not optional",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["multiverse", "physics", "facts"],
+      "tags": ["Islam", "zakat", "charity"],
       "ratio": "16:9"
     },
     {
-      "title": "5 Facts About Viruses That Are Truly Terrifying",
-      "topic": "virus facts: viruses are not technically alive yet they are the most abundant entity on Earth, there are viruses that infect other viruses, 8% of human DNA comes from ancient viruses, bacteriophage viruses kill more bacteria per day than all antibiotics combined",
+      "title": "5 Incredible Facts About Muslim Spain",
+      "topic": "Al-Andalus Muslim Spain facts: for nearly 800 years Muslim Spain was the most advanced civilization in Europe, the city of Cordoba had street lighting and sewage systems when London was still a muddy village, the famous 12th century scholar Ibn Rushd saved Aristotle works for Western civilization, and Muslim Spanish scholars translated Greek Roman and Islamic texts that sparked the European Renaissance",
       "style": "cinematic",
       "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["viruses", "biology", "science"],
+      "tags": ["Islam", "Spain", "history"],
       "ratio": "16:9"
     }
   ]
