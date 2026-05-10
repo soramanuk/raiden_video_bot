@@ -223,7 +223,7 @@ class ScriptRequest(BaseModel):
     title: Optional[str] = ""
     style: Optional[str] = "cinematic"
     num_slides: Optional[int] = 5
-    model_key: Optional[str] = "claude-sonnet-4"
+    model_key: Optional[str] = "llama-4-scout"
 
 class SlideItem(BaseModel):
     script: str
@@ -365,7 +365,7 @@ STRICT RULES for script field:
 - duration: 4-8 seconds depending on script length
 - Do NOT add any explanation outside the JSON"""
 
-    model_key = req.model_key or "claude-sonnet-4"
+    model_key = req.model_key or "llama-4-scout"
     raw = await call_ai(model_key, prompt)
     try:
         data = json.loads(clean_json(raw))
@@ -419,7 +419,7 @@ async def manual_auto_run(req: AutoRunRequest, bg: BackgroundTasks):
     return {
         "status": "started",
         "slot": req.slot,
-        "model": req.model_key or os.getenv("DEFAULT_MODEL", "gemini-2-flash"),
+        "model": req.model_key or os.getenv("DEFAULT_MODEL", "llama-4-scout"),
         "message": f"Pipeline untuk slot '{req.slot}' dimulai di background",
     }
 
