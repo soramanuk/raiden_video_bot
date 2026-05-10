@@ -16,6 +16,26 @@ FIX v2 (2026-05):
 ✅ Image provider: Pollinations only (Pixabay dihapus)
 ✅ Font TTF fallback — drawtext pakai dejavu dari nixpacks
 
+FIX v3.6 (2026-05) — PARALLEL PIPELINE:
+✅ do_render: semua slide diproses PARALEL via asyncio.gather
+✅ Per slide: voiceover + image download berjalan BERSAMAAN
+✅ Semaphore(3) mencegah terlalu banyak koneksi ke Pollinations
+✅ Waktu render turun dari ~10 menit → ~90 detik untuk 6 slide
+✅ 30 topik baru Islamic facts di topics.json
+
+UPDATE v4.1 (2026-05) — FIX VOICE + VISUAL UPGRADE:
+✅ Suara: OpenAI TTS API (echo voice, laki-laki natural & energik)
+✅ Gambar: fal.ai FLUX schnell (primary) → Pollinations → Picsum → static fallback
+   - edge-tts dibuang: diblokir 403 di Railway (WebSocket ke Microsoft diblokir)
+   - OpenAI TTS: suara "echo" — laki-laki, natural, energik, tidak bikin ngantuk
+   - Speed 1.05x — sedikit lebih cepat & energik
+   - Env: OPENAI_TTS_VOICE (default: echo) | OPENAI_TTS_MODEL (default: tts-1)
+   - Fallback: gTTS jika OPENAI_API_KEY tidak ada / error
+✅ Caption: text narasi max 3 kata di bagian bawah setiap slide
+✅ Color Overlay: transisi warna cinematic per slide (8 palet)
+✅ Fade transition: fade-in/out 0.4s per slide
+✅ Gambar: Pollinations AI diprioritaskan (relevan dgn tema)
+
 Supported AI Providers:
 - Anthropic Claude (claude-sonnet-4-20250514, claude-haiku-4-5-20251001)
 - Groq (llama-4-scout-17b-16e-instruct, llama-4-maverick-17b-128e-instruct, llama3-70b-8192)
@@ -28,13 +48,14 @@ import os, uuid, asyncio, json, tempfile, shutil
 from pathlib import Path
 from typing import Optional, Literal
 import httpx
-from gtts import gTTS
+# edge-tts dihapus — diblokir 403 oleh Railway (WebSocket ke Microsoft diblokir cloud VPS)
+# Ganti ke OpenAI TTS API (suara laki-laki natural, jalan di Railway)
 import imageio_ffmpeg as _iio_ffmpeg
 
 FFMPEG_BIN = _iio_ffmpeg.get_ffmpeg_exe()
 
 import uploader
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -77,41 +98,63 @@ _font_logger = _logging.getLogger("font")
 
 def _find_ttf_font() -> str:
     """
-    Cari font TTF yang tersedia di container.
-    Priority: DejaVu (dari nixpacks) → Liberation → sistem → None.
+    Cari font TTF. Strategy (urutan prioritas):
+    1. font.ttf bundled di direktori yang sama dgn main.py (di-commit ke repo)
+    2. Path standard Ubuntu/Debian
+    3. Glob di /nix/store (Railway Nix)
+    4. fc-list jika tersedia
     Return path string atau "" jika tidak ada.
     """
-    candidates = [
-        # DejaVu — dipasang via nixpacks dejavu_fonts
-        "/run/current-system/sw/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/nix/var/nix/profiles/default/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        # Liberation — dipasang via nixpacks liberation_ttf
-        "/run/current-system/sw/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-        # Ubuntu / Debian fallback
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    import glob as _glob
+
+    # ── Strategy 0: /app/font.ttf — Railway deploy ke /app ──────────────────
+    for _forced in ["/app/font.ttf", "/app/fonts/font.ttf"]:
+        if Path(_forced).exists() and Path(_forced).stat().st_size > 10000:
+            _font_logger.info(f"Font Railway: {_forced}")
+            return _forced
+
+    # ── Strategy 1: font.ttf bundled di repo ─────────────────────────────────
+    bundled = Path(__file__).parent / "font.ttf"
+    if bundled.exists() and bundled.stat().st_size > 10000:
+        _font_logger.info(f"Font bundled OK: {bundled}")
+        return str(bundled)
+
+    # ── Strategy 2: Ubuntu/Debian standard ───────────────────────────────────
+    for path in [
         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
-    ]
-    # Tambah dari fc-list jika fontconfig tersedia
+        "/usr/share/fonts/truetype/crosextra/Carlito-Bold.ttf",
+    ]:
+        if Path(path).exists():
+            _font_logger.info(f"Font std: {path}")
+            return path
+
+    # ── Strategy 3: Nix store glob ────────────────────────────────────────────
+    for pattern in [
+        "/nix/store/*/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/nix/store/*/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/nix/store/*/share/fonts/**/*Bold*.ttf",
+    ]:
+        matches = _glob.glob(pattern, recursive=True)
+        if matches and Path(matches[0]).exists():
+            _font_logger.info(f"Font Nix: {matches[0]}")
+            return matches[0]
+
+    # ── Strategy 4: fc-list ────────────────────────────────────────────────────
     try:
         import subprocess
-        result = subprocess.run(
-            ["fc-list", "--format=%{file}\n"],
-            capture_output=True, text=True, timeout=5
-        )
-        for line in result.stdout.splitlines():
+        r = subprocess.run(["fc-list", "--format=%{file}\n"],
+                           capture_output=True, text=True, timeout=5)
+        for line in r.stdout.splitlines():
             f = line.strip()
-            if f.endswith(".ttf") and "Bold" in f:
-                candidates.insert(0, f)
+            if f and f.endswith(".ttf") and Path(f).exists():
+                _font_logger.info(f"Font fc-list: {f}")
+                return f
     except Exception:
         pass
 
-    for path in candidates:
-        if Path(path).exists():
-            _font_logger.info(f"Font TTF ditemukan: {path}")
-            return path
-
-    _font_logger.warning("Tidak ada font TTF ditemukan — drawtext dinonaktifkan")
+    _font_logger.warning("Tidak ada font TTF — drawtext dinonaktifkan")
     return ""
 
 TTF_FONT_PATH = _find_ttf_font()
@@ -209,10 +252,33 @@ async def on_startup():
         sched_module.start_scheduler()
         await notifier.notify_startup()
 
+# ─── Active task registry — cegah task dicancel saat shutdown ───────────────
+_active_render_tasks: set[asyncio.Task] = set()
+
+def _register_task(coro) -> asyncio.Task:
+    """Buat task, daftarkan ke registry, hapus otomatis saat selesai."""
+    task = asyncio.create_task(coro)
+    _active_render_tasks.add(task)
+    task.add_done_callback(_active_render_tasks.discard)
+    return task
+
 @app.on_event("shutdown")
 async def on_shutdown():
     if SCHEDULER_AVAILABLE:
         sched_module.stop_scheduler()
+    # Graceful shutdown: tunggu semua render task selesai (max 600s)
+    if _active_render_tasks:
+        import logging as _sl
+        _sl.getLogger("shutdown").warning(
+            f"Shutdown: menunggu {len(_active_render_tasks)} render task selesai..."
+        )
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*_active_render_tasks, return_exceptions=True),
+                timeout=600,
+            )
+        except asyncio.TimeoutError:
+            _sl.getLogger("shutdown").error("Shutdown timeout — render task tidak selesai dalam 600s")
 
 # ─── AI Provider Registry ────────────────────────────────────────────────────
 from ai_client import AI_MODELS, ENV_KEY_MAP, PROVIDER_COLORS, call_ai, clean_json
@@ -382,11 +448,13 @@ STRICT RULES for script field:
     return data
 
 @app.post("/render-video")
-async def render_video(req: RenderRequest, bg: BackgroundTasks):
+async def render_video(req: RenderRequest):
+    # v3.6.3: asyncio.create_task (bukan BackgroundTasks) agar tidak dicancel
+    # saat Railway restart/shutdown request. Task hidup di event loop utama.
     job_id = str(uuid.uuid4())[:12]
     from job_store import create_job
     create_job(job_id, title=req.title)
-    bg.add_task(do_render, job_id, req)
+    _register_task(do_render(job_id, req))
     return {"job_id": job_id}
 
 @app.get("/job-status/{job_id}")
@@ -412,10 +480,11 @@ def get_scheduler_status():
     return sched_module.get_scheduler_status()
 
 @app.post("/auto-run")
-async def manual_auto_run(req: AutoRunRequest, bg: BackgroundTasks):
+async def manual_auto_run(req: AutoRunRequest):
+    # v3.6.3: asyncio.create_task agar pipeline tidak dicancel mid-render
     if not SCHEDULER_AVAILABLE:
         return {"error": "Scheduler module tidak tersedia"}
-    bg.add_task(sched_module.run_full_pipeline, req.slot, req.model_key)
+    _register_task(sched_module.run_full_pipeline(req.slot, req.model_key))
     return {
         "status": "started",
         "slot": req.slot,
@@ -489,17 +558,32 @@ async def do_render(job_id: str, req: RenderRequest):
     set_job_status(job_id, "processing")
     work_dir = Path(tempfile.mkdtemp())
     try:
-        inputs_for_ffmpeg = []
         fallback_slides = []
         total = len(req.slides)
 
-        for i, slide in enumerate(req.slides):
-            slide_dir = work_dir / f"slide_{i:02d}"
-            slide_dir.mkdir()
+        # ── FIX v3.6: Parallel slide processing ──────────────────────────────
+        # Sebelumnya: sequential — 6 slides × (gTTS + Pollinations 90s) = timeout 600s
+        # Sekarang: semua slide diproses BERSAMAAN → total waktu ≈ 1 slide saja
+        # Semaphore 3 mencegah terlalu banyak koneksi simultan ke Pollinations
+        _img_semaphore = asyncio.Semaphore(1)  # v3.6.2: sequential image download cegah 429
 
+        async def _process_one_slide(i: int, slide) -> dict:
+            """Process satu slide: voiceover + image download secara paralel."""
+            slide_dir = work_dir / f"slide_{i:02d}"
+            slide_dir.mkdir(exist_ok=True)
             audio_path = slide_dir / "audio.mp3"
-            # FIX: lang="en" karena narasi bahasa Inggris
-            await gen_voiceover(slide.script, req.voice, str(audio_path))
+            img_path   = slide_dir / "image.jpg"
+            prompt     = f"{slide.image_prompt}, {req.style} style"
+
+            async def _fetch_image():
+                async with _img_semaphore:
+                    await download_image(prompt, req.width, req.height, str(img_path))
+
+            # Jalankan voiceover + image download PARALEL dalam satu slide
+            await asyncio.gather(
+                gen_voiceover(slide.script, req.voice, str(audio_path)),
+                _fetch_image(),
+            )
 
             if not audio_path.exists() or audio_path.stat().st_size < 100:
                 raise FileNotFoundError(
@@ -508,21 +592,29 @@ async def do_render(job_id: str, req: RenderRequest):
                     f"size={audio_path.stat().st_size if audio_path.exists() else 0} bytes"
                 )
 
-            img_path = slide_dir / "image.jpg"
-            prompt = f"{slide.image_prompt}, {req.style} style"
-            await download_image(prompt, req.width, req.height, str(img_path))
-
             valid, _ = _is_valid_image(str(img_path))
-            if not valid:
-                fallback_slides.append(i + 1)
+            is_fallback = not valid
 
-            # duration dari AI tidak dipakai untuk cut — panjang slide
-            # ditentukan 100% dari audio nyata + apad di concat_slides.
-            inputs_for_ffmpeg.append({
+            _img_logger.debug(f"Slide {i+1}/{total} siap (fallback={is_fallback})")
+            return {
+                "idx": i,
                 "img": str(img_path),
                 "audio": str(audio_path),
-            })
-            _img_logger.debug(f"Slide {i+1}/{total} siap")
+                "script": slide.script,  # v4.0: untuk caption overlay
+                "is_fallback": is_fallback,
+            }
+
+        # Proses SEMUA slide secara paralel sekaligus
+        _img_logger.info(f"Job {job_id}: memproses {total} slide secara paralel...")
+        results = await asyncio.gather(*[
+            _process_one_slide(i, slide)
+            for i, slide in enumerate(req.slides)
+        ])
+
+        # Urutkan kembali berdasarkan index (gather tidak jamin urutan jika ada error)
+        results_sorted = sorted(results, key=lambda r: r["idx"])
+        inputs_for_ffmpeg = [{"img": r["img"], "audio": r["audio"], "script": r["script"]} for r in results_sorted]
+        fallback_slides   = [r["idx"] + 1 for r in results_sorted if r["is_fallback"]]
 
         if fallback_slides:
             _img_logger.warning(
@@ -577,14 +669,113 @@ async def do_render(job_id: str, req: RenderRequest):
         shutil.rmtree(work_dir, ignore_errors=True)
 
 
-# FIX: gTTS lang="en" untuk narasi bahasa Inggris
-async def gen_voiceover(text: str, voice: str, out_path: str):
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, _gtts_save, text, out_path)
+# v4.1: OpenAI TTS — suara laki-laki natural, jalan di Railway (tidak diblokir seperti edge-tts)
+# Voice options: alloy, echo, fable, onyx, nova, shimmer
+# onyx = laki-laki dalam & berwibawa | echo = laki-laki natural & energik (default) | fable = ekspresif
+OPENAI_TTS_VOICE = os.getenv("OPENAI_TTS_VOICE", "echo")   # default: echo (laki-laki, natural, tidak bikin ngantuk)
+OPENAI_TTS_MODEL = os.getenv("OPENAI_TTS_MODEL", "tts-1")  # tts-1 (cepat) | tts-1-hd (kualitas tinggi)
 
-def _gtts_save(text: str, out_path: str):
-    tts = gTTS(text=text, lang="en", slow=False)
-    tts.save(out_path)
+async def gen_voiceover(text: str, voice: str, out_path: str):
+    """
+    Generate voiceover dengan fallback chain:
+    1. ElevenLabs TTS — suara pria natural & gratis (10k char/bulan)
+    2. OpenAI TTS — suara pria jika OPENAI_API_KEY tersedia
+    3. gTTS (Google TTS) — fallback terakhir (suara wanita, robot)
+    """
+    _vo_log = logging.getLogger("voiceover")
+
+    # ── Provider 1: ElevenLabs — suara pria natural, gratis ──────────────────
+    el_key = os.getenv("ELEVENLABS_API_KEY", "")
+    if el_key:
+        try:
+            import httpx as _hx
+            # Adam: suara pria natural & jelas, cocok untuk narasi edukasi
+            EL_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")  # Adam
+            EL_MODEL    = os.getenv("ELEVENLABS_MODEL", "eleven_turbo_v2_5")  # cepat & hemat kuota
+            el_headers = {
+                "xi-api-key": el_key,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg",
+            }
+            el_payload = {
+                "text": text,
+                "model_id": EL_MODEL,
+                "voice_settings": {
+                    "stability": 0.5,
+                    "similarity_boost": 0.75,
+                    "style": 0.3,
+                    "use_speaker_boost": True,
+                }
+            }
+            async with _hx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(
+                    f"https://api.elevenlabs.io/v1/text-to-speech/{EL_VOICE_ID}",
+                    headers=el_headers,
+                    json=el_payload,
+                )
+            if resp.status_code == 200:
+                with open(out_path, "wb") as f:
+                    f.write(resp.content)
+                size_kb = Path(out_path).stat().st_size // 1024
+                if size_kb > 1:
+                    _vo_log.info(f"ElevenLabs TTS OK (Adam, {EL_MODEL}) → {size_kb} KB")
+                    return
+                _vo_log.warning(f"ElevenLabs output terlalu kecil ({size_kb} KB) — fallback")
+            else:
+                _vo_log.warning(f"ElevenLabs HTTP {resp.status_code}: {resp.text[:200]} — fallback")
+        except Exception as exc:
+            _vo_log.warning(f"ElevenLabs error: {exc} — fallback OpenAI")
+    else:
+        _vo_log.info("ELEVENLABS_API_KEY tidak ada — skip ElevenLabs")
+
+    # ── Provider 2: OpenAI TTS ────────────────────────────────────────────────
+    openai_key = os.getenv("OPENAI_API_KEY", "")
+    if openai_key:
+        try:
+            import httpx as _hx
+            tts_voice = OPENAI_TTS_VOICE
+            tts_model = OPENAI_TTS_MODEL
+            headers = {
+                "Authorization": f"Bearer {openai_key}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "model": tts_model,
+                "input": text,
+                "voice": tts_voice,
+                "response_format": "mp3",
+                "speed": 1.05,
+            }
+            async with _hx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(
+                    "https://api.openai.com/v1/audio/speech",
+                    headers=headers,
+                    json=payload,
+                )
+            if resp.status_code == 200:
+                with open(out_path, "wb") as f:
+                    f.write(resp.content)
+                size_kb = Path(out_path).stat().st_size // 1024
+                if size_kb > 1:
+                    _vo_log.info(f"OpenAI TTS OK ({tts_voice}, {tts_model}) → {size_kb} KB")
+                    return
+                _vo_log.warning(f"OpenAI TTS output terlalu kecil ({size_kb} KB) — fallback gTTS")
+            else:
+                _vo_log.warning(f"OpenAI TTS HTTP {resp.status_code}: {resp.text[:200]} — fallback gTTS")
+        except Exception as exc:
+            _vo_log.warning(f"OpenAI TTS error: {exc} — fallback gTTS")
+    else:
+        _vo_log.info("OPENAI_API_KEY tidak ada — skip OpenAI TTS")
+
+    # ── Provider 3: gTTS (Google TTS) — fallback terakhir ───────────────────
+    try:
+        from gtts import gTTS
+        _vo_log.warning("Menggunakan gTTS fallback (suara wanita — semua provider gagal)")
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, lambda: gTTS(text=text, lang="en", slow=False).save(out_path))
+        _vo_log.info(f"gTTS OK → {Path(out_path).stat().st_size // 1024} KB")
+    except Exception as exc:
+        _vo_log.error(f"gTTS juga gagal: {exc}")
 
 # ─── Image Download: Pollinations Only (Pixabay removed) ─────────────────────
 def _make_fallback_jpeg(width: int = 1280, height: int = 720) -> bytes:
@@ -626,10 +817,12 @@ def _make_fallback_jpeg(width: int = 1280, height: int = 720) -> bytes:
 _FALLBACK_JPEG = _make_fallback_jpeg()
 _img_logger = logging.getLogger("image")
 
-IMAGE_DOWNLOAD_RETRIES = int(os.getenv("IMAGE_DOWNLOAD_RETRIES", "3"))
-IMAGE_DOWNLOAD_TIMEOUT = int(os.getenv("IMAGE_DOWNLOAD_TIMEOUT", "90"))
+# v3.6: Timeout diturunkan 90→45s, retries 3→2
+# Karena sekarang paralel, cepat gagal = lebih baik daripada menunggu lama
+IMAGE_DOWNLOAD_RETRIES = int(os.getenv("IMAGE_DOWNLOAD_RETRIES", "5"))
+IMAGE_DOWNLOAD_TIMEOUT = int(os.getenv("IMAGE_DOWNLOAD_TIMEOUT", "45"))
 IMAGE_MIN_BYTES        = int(os.getenv("IMAGE_MIN_BYTES",        "2048"))
-IMAGE_RETRY_DELAY      = float(os.getenv("IMAGE_RETRY_DELAY",   "10"))
+IMAGE_RETRY_DELAY      = float(os.getenv("IMAGE_RETRY_DELAY",   "15"))
 
 def _is_valid_image(path: str) -> tuple[bool, str]:
     p = Path(path)
@@ -647,68 +840,139 @@ def _is_valid_image(path: str) -> tuple[bool, str]:
     preview = header.decode("ascii", errors="replace")
     return False, f"bukan gambar (header: {preview!r})"
 
+async def _try_download_url(url: str, out_path: str, label: str) -> bool:
+    """
+    Coba download satu URL gambar. Return True jika berhasil dan valid.
+    Pisah connect/read timeout — mencegah Pollinations yang 'connect OK tapi
+    streaming sangat lambat' dari menggantung selama IMAGE_DOWNLOAD_TIMEOUT penuh.
+    """
+    _timeout = httpx.Timeout(connect=10.0, read=IMAGE_DOWNLOAD_TIMEOUT, write=10.0, pool=5.0)
+    try:
+        async with httpx.AsyncClient(timeout=_timeout, follow_redirects=True) as c:
+            r = await c.get(url)
+        if r.status_code != 200:
+            _img_logger.warning(f"[{label}] HTTP {r.status_code}")
+            return False
+        with open(out_path, "wb") as f:
+            f.write(r.content)
+        valid, reason = _is_valid_image(out_path)
+        if not valid:
+            _img_logger.warning(f"[{label}] validasi gagal: {reason}")
+            return False
+        _img_logger.debug(f"[{label}] OK — {Path(out_path).stat().st_size // 1024} KB")
+        return True
+    except (httpx.TimeoutException, httpx.ConnectError, httpx.ReadError) as exc:
+        _img_logger.warning(f"[{label}] Network error: {type(exc).__name__}")
+        return False
+    except Exception as exc:
+        _img_logger.warning(f"[{label}] Error: {exc}")
+        return False
+
+
 async def download_image(prompt: str, width: int, height: int, out_path: str):
     """
-    Download gambar dari Pollinations AI dengan retry otomatis.
-    Pixabay dihapus — Pollinations gratis, no API key, proven working.
+    Download gambar dengan strategi 4-tier:
+    1. Unsplash API — foto HD relevan berdasarkan keyword (primary, 50 req/jam gratis)
+    2. Pollinations AI — AI image gratis
+    3. Picsum dengan seed dari hash prompt — foto HD reliable
+    4. Static fallback JPEG — tidak pernah gagal
+
+    v4.8: Unsplash sebagai primary provider — foto real berkualitas tinggi.
+    UNSPLASH_ACCESS_KEY env var wajib ada untuk mengaktifkan Unsplash.
     """
-    import urllib.parse
+    import urllib.parse, hashlib, re
     encoded = urllib.parse.quote(prompt)
-    last_error = ""
+    prompt_seed = int(hashlib.md5(prompt.encode()).hexdigest(), 16) % 1000
 
-    for attempt in range(1, IMAGE_DOWNLOAD_RETRIES + 1):
-        seed = uuid.uuid4().int % 99999
-        url = (
-            f"https://image.pollinations.ai/prompt/{encoded}"
-            f"?width={width}&height={height}&nologo=true&seed={seed}"
-        )
+    # ── Provider 1: Unsplash API — foto HD relevan ────────────────────────────
+    unsplash_key = os.getenv("UNSPLASH_ACCESS_KEY", "")
+    if unsplash_key:
         try:
-            async with httpx.AsyncClient(timeout=IMAGE_DOWNLOAD_TIMEOUT) as c:
-                r = await c.get(url, follow_redirects=True)
-            if r.status_code != 200:
-                last_error = f"HTTP {r.status_code}"
-                _img_logger.warning(
-                    f"[attempt {attempt}/{IMAGE_DOWNLOAD_RETRIES}] Pollinations {last_error} — retrying..."
-                )
-                await asyncio.sleep(IMAGE_RETRY_DELAY * attempt)
-                continue
+            # Ekstrak keyword penting dari prompt (max 5 kata)
+            # Buang kata-kata umum yang tidak relevan untuk pencarian foto
+            stopwords = {"a","an","the","of","in","on","at","to","for","with",
+                        "and","or","is","was","are","were","be","been","being",
+                        "have","has","had","do","does","did","will","would",
+                        "could","should","may","might","shall","can","this",
+                        "that","these","those","from","by","as","into","through",
+                        "during","before","after","above","below","between","photo",
+                        "image","picture","showing","depicting","scene","view"}
+            words = re.findall(r"[a-zA-Z]+", prompt.lower())
+            keywords = [w for w in words if w not in stopwords and len(w) > 3][:5]
+            search_query = " ".join(keywords) if keywords else prompt[:50]
 
+            unsplash_url = (
+                f"https://api.unsplash.com/photos/random"
+                f"?query={urllib.parse.quote(search_query)}"
+                f"&orientation={'landscape' if width > height else 'portrait'}"
+                f"&content_filter=high"
+            )
+            _uh_timeout = httpx.Timeout(connect=8.0, read=20.0, write=8.0, pool=5.0)
+            async with httpx.AsyncClient(timeout=_uh_timeout) as c:
+                resp = await c.get(
+                    unsplash_url,
+                    headers={"Authorization": f"Client-ID {unsplash_key}"},
+                )
+            if resp.status_code == 200:
+                data = resp.json()
+                # Ambil URL foto resolusi tinggi sesuai ukuran
+                raw_url = data["urls"].get("regular") or data["urls"].get("full")
+                # Tambah parameter resize agar sesuai ukuran slide
+                img_url = f"{raw_url}&w={width}&h={height}&fit=crop&crop=entropy"
+                async with httpx.AsyncClient(timeout=_uh_timeout) as c:
+                    img_resp = await c.get(img_url, follow_redirects=True)
+                if img_resp.status_code == 200:
+                    with open(out_path, "wb") as f:
+                        f.write(img_resp.content)
+                    valid, reason = _is_valid_image(out_path)
+                    if valid:
+                        size_kb = Path(out_path).stat().st_size // 1024
+                        photographer = data.get("user", {}).get("name", "unknown")
+                        _img_logger.info(f"Unsplash OK ({search_query!r}, by {photographer}) — {size_kb} KB")
+                        return
+                    _img_logger.warning(f"Unsplash image invalid: {reason} — fallback Pollinations")
+                else:
+                    _img_logger.warning(f"Unsplash download HTTP {img_resp.status_code} — fallback")
+            elif resp.status_code == 403:
+                _img_logger.warning("Unsplash 403 — rate limit atau key salah, fallback Pollinations")
+            else:
+                _img_logger.warning(f"Unsplash HTTP {resp.status_code}: {resp.text[:100]} — fallback")
+        except Exception as exc:
+            _img_logger.warning(f"Unsplash error: {exc} — fallback Pollinations")
+    else:
+        _img_logger.info("UNSPLASH_ACCESS_KEY tidak ada — skip Unsplash, pakai Pollinations")
+
+    # ── Provider 2: Pollinations AI — AI image gratis ─────────────────────────
+    seed = uuid.uuid4().int % 99999
+    pol_url = (
+        f"https://image.pollinations.ai/prompt/{encoded}"
+        f"?width={width}&height={height}&nologo=true&seed={seed}&enhance=true"
+    )
+    _pol_timeout = httpx.Timeout(connect=8.0, read=25.0, write=8.0, pool=5.0)
+    try:
+        async with httpx.AsyncClient(timeout=_pol_timeout, follow_redirects=True) as c:
+            r = await c.get(pol_url)
+        if r.status_code == 200:
             with open(out_path, "wb") as f:
                 f.write(r.content)
-
             valid, reason = _is_valid_image(out_path)
             if valid:
-                if attempt > 1:
-                    _img_logger.info(
-                        f"Pollinations OK setelah {attempt} percobaan ({reason}, "
-                        f"{Path(out_path).stat().st_size // 1024} KB)"
-                    )
+                _img_logger.info(f"Pollinations OK — {Path(out_path).stat().st_size // 1024} KB")
                 return
+            _img_logger.warning(f"Pollinations invalid: {reason} — fallback Picsum")
+        else:
+            _img_logger.warning(f"Pollinations HTTP {r.status_code} — langsung Picsum")
+    except Exception as exc:
+        _img_logger.warning(f"Pollinations {type(exc).__name__} — langsung Picsum")
 
-            last_error = f"validasi gagal: {reason}"
-            _img_logger.warning(
-                f"[attempt {attempt}/{IMAGE_DOWNLOAD_RETRIES}] {last_error} — retrying..."
-            )
-            await asyncio.sleep(IMAGE_RETRY_DELAY * attempt)
+    # ── Provider 3: Picsum dengan seed dari hash prompt ───────────────────────
+    picsum_url = f"https://picsum.photos/seed/{prompt_seed}/{width}/{height}"
+    if await _try_download_url(picsum_url, out_path, "Picsum"):
+        _img_logger.info(f"Picsum OK (seed={prompt_seed})")
+        return
 
-        except (httpx.TimeoutException, httpx.ConnectError, httpx.ReadError) as exc:
-            last_error = type(exc).__name__
-            _img_logger.warning(
-                f"[attempt {attempt}/{IMAGE_DOWNLOAD_RETRIES}] Network error: {exc} — retrying..."
-            )
-            await asyncio.sleep(IMAGE_RETRY_DELAY * attempt)
-        except Exception as exc:
-            last_error = str(exc)
-            _img_logger.error(
-                f"[attempt {attempt}/{IMAGE_DOWNLOAD_RETRIES}] Unexpected error: {exc}",
-                exc_info=True,
-            )
-            await asyncio.sleep(IMAGE_RETRY_DELAY * attempt)
-
-    _img_logger.error(
-        f"Semua {IMAGE_DOWNLOAD_RETRIES} percobaan Pollinations gagal "
-        f"(error terakhir: {last_error}). Menggunakan gambar fallback untuk: {prompt[:60]}"
-    )
+    # ── Provider 4: Static JPEG fallback ─────────────────────────────────────
+    _img_logger.error("Semua provider gagal — pakai static fallback JPEG")
     with open(out_path, "wb") as f:
         f.write(_FALLBACK_JPEG)
 
@@ -719,23 +983,8 @@ async def get_audio_duration(audio_path: str) -> float:
     Log hasilnya agar mudah debug jika ada slide terpotong.
     """
     _render_log = logging.getLogger("render")
-    # Method 1: ffprobe (paling akurat)
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            FFMPEG_BIN.replace("ffmpeg", "ffprobe"), "-v", "error",
-            "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1", audio_path,
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
-        )
-        out, _ = await asyncio.wait_for(proc.communicate(), timeout=30)
-        dur = float(out.decode().strip())
-        if dur > 0.5:
-            _render_log.info(f"audio_dur ffprobe: {dur:.2f}s — {audio_path}")
-            return dur
-    except Exception as e:
-        _render_log.warning(f"ffprobe gagal: {e}")
-
-    # Method 2: mutagen (pure Python, tidak butuh ffprobe binary)
+    # Method 1: mutagen (pure Python, tidak butuh ffprobe binary)
+    # ffprobe dinonaktifkan — imageio_ffmpeg tidak bundel ffprobe binary
     try:
         from mutagen.mp3 import MP3
         audio = MP3(audio_path)
@@ -763,27 +1012,168 @@ async def get_audio_duration(audio_path: str) -> float:
 async def concat_slides(slides: list, width: int, height: int, output: str):
     if not slides:
         raise ValueError("concat_slides: tidak ada slide untuk digabung")
+
+    # ── v4.0: Warna overlay per slide — mengikuti mood narasi ────────────────
+    # Palet pasangan warna untuk dual-color overlay cinematic
+    # Format: (warna_atas, warna_bawah) — gradient 2 warna per slide
+    SLIDE_OVERLAY_PAIRS = [
+        ("0x1a1a2e@0.30", "0x533483@0.45"),   # Navy → Purple
+        ("0x0f3460@0.30", "0x1a1a2e@0.45"),   # Royal Blue → Navy
+        ("0x2d132c@0.30", "0x0f3460@0.45"),   # Burgundy → Blue
+        ("0x1b262c@0.30", "0x0a3d62@0.45"),   # Dark Teal → Ocean Blue
+        ("0x533483@0.30", "0x2d132c@0.45"),   # Purple → Burgundy
+        ("0x0a3d62@0.30", "0x533483@0.45"),   # Ocean Blue → Purple
+        ("0x16213e@0.30", "0x1b262c@0.45"),   # Midnight Blue → Dark Teal
+        ("0x1e3a5f@0.30", "0x0f3460@0.45"),   # Denim → Royal Blue
+    ]
+    # Ken Burns directions: zoom+pan bervariasi tiap slide
+    KB_EFFECTS = [
+        {"zoom_start": 1.0,  "zoom_end": 1.08, "pan_x": 0,    "pan_y": 0   },  # zoom in center
+        {"zoom_start": 1.08, "zoom_end": 1.0,  "pan_x": -0.03,"pan_y": 0   },  # zoom out + pan right
+        {"zoom_start": 1.0,  "zoom_end": 1.08, "pan_x": 0.03, "pan_y": 0   },  # zoom in + pan left
+        {"zoom_start": 1.05, "zoom_end": 1.0,  "pan_x": 0,    "pan_y": -0.02}, # zoom out + pan down
+        {"zoom_start": 1.0,  "zoom_end": 1.06, "pan_x": -0.02,"pan_y": 0.02},  # zoom in + diagonal
+        {"zoom_start": 1.08, "zoom_end": 1.0,  "pan_x": 0.02, "pan_y": -0.02}, # zoom out + diagonal
+    ]
+
+    def _make_caption(script: str, max_words: int = 3) -> str:
+        """Ambil max 3 kata pertama yang meaningful dari script sebagai caption."""
+        import re
+        # Hapus filler pembuka viral (Bro, Wait, Did you, etc.) lalu ambil kata inti
+        cleaned = re.sub(
+            r"^(Bro[,\.\.\.]?|Wait[,\.\.\.]?|So[,\.]?|And[,\.]?|But[,\.]?|Here's|Did you know that|Plot twist:|This fact|Nobody|Get this:?|Okay so|Listen[,:]?)\s*",
+            "", script, flags=re.IGNORECASE
+        ).strip()
+        words = cleaned.split()[:max_words]
+        caption = " ".join(words)
+        # Hapus tanda baca di akhir
+        caption = re.sub(r"[,.!?:;]+$", "", caption).strip()
+        return caption.upper() if caption else "NEXT FACT"
+
+    def _escape_ffmpeg(text: str) -> str:
+        """Escape teks untuk FFmpeg drawtext — strategi strip karakter berbahaya.
+
+        Apostrophe seperti di "AL-IDRISI'S" adalah penyebab utama error
+        karena membuka/menutup string di filter_complex. Solusi paling aman:
+        hapus/ganti karakter bermasalah daripada escape (escape sering salah).
+        """
+        text = text.replace("'", "")    # apostrophe → hapus (AL-IDRISI'S → AL-IDRISIS)
+        text = text.replace('"', "")    # double quote → hapus
+        text = text.replace("\\", "") # backslash → hapus (cegah escape sequence rusak)
+        text = text.replace(":", " ")   # colon → spasi
+        text = text.replace(",", " ")   # comma → spasi
+        text = text.replace("[", "")    # bracket → hapus
+        text = text.replace("]", "")    # bracket → hapus
+        text = text.replace("%", "")    # percent → hapus
+        text = text.replace("{", "")    # curly brace → hapus
+        text = text.replace("}", "")    # curly brace → hapus
+        text = text.replace(";", "")    # semicolon → hapus (breaks filter_complex)
+        text = text.replace("=", "")    # equals → hapus (breaks filter args)
+        return text.strip()
+
     tmp = Path(tempfile.mkdtemp())
     segment_paths = []
+    _render_log = logging.getLogger("render")
+
     try:
         for i, s in enumerate(slides):
             seg = str(tmp / f"seg_{i:02d}.mp4")
-            # FIX v3.5: Ukur durasi audio nyata, set -t eksplisit pada image loop.
-            # Tidak ada infinite loop hang, tidak perlu -shortest atau tpad.
-            # ultrafast preset agar tidak timeout di Railway.
             audio_dur = await get_audio_duration(s["audio"])
-            slide_dur = round(audio_dur + 3.0, 3)  # +3s tail — extra buffer untuk gTTS silence
-            s["_dur"] = slide_dur  # simpan untuk referensi total duration
+            slide_dur = round(audio_dur + 1.5, 3)  # +1.5s tail (edge-tts lebih presisi dari gTTS)
+            s["_dur"] = slide_dur
+
+            # ── Script text untuk narasi layar (max 12 kata, 2 baris) ──────────
+            script_text = s.get("script", "")
+            # Narasi: ambil max 12 kata pertama yang meaningful
+            import re as _re
+            cleaned_script = _re.sub(
+                r"^(Bro[,\.]?|Wait[,\.]?|So[,\.]?|And[,\.]?|But[,\.]?|Here's|Did you know|Plot twist:|Get this:?|Okay so|Listen[,:]?)\s*",
+                "", script_text, flags=_re.IGNORECASE
+            ).strip()
+            words_12 = cleaned_script.split()[:12]
+            # Bagi jadi 2 baris max 6 kata
+            line1_words = words_12[:6]
+            line2_words = words_12[6:]
+            line1 = _escape_ffmpeg(" ".join(line1_words)).upper()
+            line2 = _escape_ffmpeg(" ".join(line2_words)).upper() if line2_words else ""
+
+            # ── Dual overlay colors per slide ─────────────────────────────────
+            overlay_top, overlay_bot = SLIDE_OVERLAY_PAIRS[i % len(SLIDE_OVERLAY_PAIRS)]
+
+            # ── Ken Burns effect parameters ───────────────────────────────────
+            kb = KB_EFFECTS[i % len(KB_EFFECTS)]
+            z_start = kb["zoom_start"]
+            z_end   = kb["zoom_end"]
+            px      = kb["pan_x"]
+            py      = kb["pan_y"]
+            # Ken Burns: zoompan filter
+            # fps=25, total frames = slide_dur * 25
+            total_frames = int(slide_dur * 25)
+            # zoompan: zoom interpolasi dari z_start ke z_end selama slide
+            # x/y offset untuk pan effect
+            kb_filter = (
+                f"scale={width*2}:{height*2},"  # scale 2x dulu supaya ada room untuk zoom/pan
+                f"zoompan="
+                f"z='min(zoom+({z_end-z_start:.4f}/{total_frames}),{max(z_start,z_end):.3f})':"
+                f"x='iw/2-(iw/zoom/2)+({px:.4f}*iw)':"
+                f"y='ih/2-(ih/zoom/2)+({py:.4f}*ih)':"
+                f"d={total_frames}:s={width}x{height}:fps=25,"
+                f"setsar=1"
+            )
+
+            # ── Fade transition ───────────────────────────────────────────────
+            fade_dur = 0.4
+            fade_out_start = max(slide_dur - fade_dur, slide_dur / 2)
+
+            # ── Build filter_complex ──────────────────────────────────────────
+            has_font = bool(TTF_FONT_PATH)
+
+            if has_font:
+                font_path_esc = TTF_FONT_PATH.replace(":", "\\:")
+                # Dual overlay: bar atas tipis + bar bawah tebal untuk teks
+                # Teks narasi 2 baris di bagian bawah
+                line1_y = height - 130
+                line2_y = height - 75
+                text_filters = (
+                    # Bar overlay atas (tipis, mood)
+                    f"drawbox=x=0:y=0:w={width}:h=60:color={overlay_top}:t=fill,"
+                    # Bar overlay bawah (tebal, untuk teks)
+                    f"drawbox=x=0:y={height-160}:w={width}:h=160:color={overlay_bot}:t=fill,"
+                    # Garis aksen warna di atas bar bawah
+                    f"drawbox=x=0:y={height-162}:w={width}:h=3:color=white@0.6:t=fill,"
+                    # Teks baris 1
+                    f"drawtext=fontfile='{font_path_esc}':text='{line1}':"
+                    f"fontsize=36:fontcolor=white:shadowcolor=black@0.8:shadowx=2:shadowy=2:"
+                    f"x=(w-text_w)/2:y={line1_y}"
+                )
+                if line2:
+                    text_filters += (
+                        f",drawtext=fontfile='{font_path_esc}':text='{line2}':"
+                        f"fontsize=36:fontcolor=white@0.9:shadowcolor=black@0.8:shadowx=2:shadowy=2:"
+                        f"x=(w-text_w)/2:y={line2_y}"
+                    )
+                caption_filter = text_filters
+            else:
+                # Tanpa font: dual color bar saja (atas + bawah)
+                caption_filter = (
+                    f"drawbox=x=0:y=0:w={width}:h=8:color={overlay_top}:t=fill,"
+                    f"drawbox=x=0:y={height-8}:w={width}:h=8:color={overlay_bot}:t=fill"
+                )
+
+            # Build filter_complex dengan Ken Burns + dual overlay + narasi
+            filter_complex = (
+                f"[0:v]{kb_filter},"
+                f"fade=t=in:st=0:d={fade_dur}:alpha=0,"
+                f"fade=t=out:st={fade_out_start}:d={fade_dur}:alpha=0,"
+                f"{caption_filter}[v];"
+                f"[1:a]apad=pad_dur=1[a]"
+            )
+
             cmd = [
                 FFMPEG_BIN, "-y",
                 "-loop", "1", "-t", str(slide_dur), "-i", s["img"],
                 "-i", s["audio"],
-                "-filter_complex",
-                (
-                    f"[0:v]scale={width}:{height}:force_original_aspect_ratio=decrease,"
-                    f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1[v];"
-                    f"[1:a]apad=pad_dur=2[a]"
-                ),
+                "-filter_complex", filter_complex,
                 "-map", "[v]", "-map", "[a]",
                 "-t", str(slide_dur),
                 "-c:v", "libx264", "-preset", "ultrafast", "-tune", "stillimage",
@@ -796,10 +1186,12 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
             )
             _, stderr = await asyncio.wait_for(proc.communicate(), timeout=180)
             if proc.returncode != 0:
+                err_msg = stderr.decode()[-400:].strip()
+                _render_log.error(f"ffmpeg slide {i} error: {err_msg}")
                 raise RuntimeError(
-                    f"ffmpeg gagal encode slide {i} (exit {proc.returncode}): "
-                    f"{stderr.decode()[-300:].strip()}"
+                    f"ffmpeg gagal encode slide {i} (exit {proc.returncode}): {err_msg}"
                 )
+            _render_log.info(f"Slide {i+1}/{len(slides)} encoded — line1: '{line1}' | dur: {slide_dur:.1f}s")
             segment_paths.append(seg)
 
         list_file = str(tmp / "list.txt")
@@ -807,14 +1199,12 @@ async def concat_slides(slides: list, width: int, height: int, output: str):
             for seg in segment_paths:
                 f.write(f"file '{seg}'\n")
 
-        # Hitung total durasi semua segment untuk guard di output akhir
         total_dur = sum(s.get("_dur", 0) for s in slides)
+        _render_log.info(f"Concat {len(slides)} slides — total durasi estimasi: {total_dur:.1f}s")
 
         concat_cmd = [
             FFMPEG_BIN, "-y", "-f", "concat", "-safe", "0",
             "-i", list_file,
-            # FIX v3.5: -c copy cukup karena semua segment sudah seragam
-            # (same encoder, same params, same fps). Tidak ada keyframe mismatch.
             "-c", "copy",
             "-movflags", "+faststart",
             output,
