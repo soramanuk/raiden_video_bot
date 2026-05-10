@@ -546,7 +546,7 @@ async def do_render(job_id: str, req: RenderRequest):
                 out_path=thumb_out,
                 width=1280,
                 height=720,
-                font_path=TTF_FONT_PATH,   # pass font ke uploader
+                # font_path tidak diperlukan — uploader.py auto-detect via _find_ttf_font()
             )
             if ok:
                 thumbnail_path = thumb_out
