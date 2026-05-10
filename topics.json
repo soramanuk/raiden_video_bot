@@ -1,201 +1,201 @@
 {
-  "_comment": "Daftar topik rotasi harian. Sistem akan otomatis memilih topik berdasarkan hari ke-N dan slot waktu.",
+  "_comment": "Daily topic rotation. System auto-selects topic based on day index and time slot.",
   "_slots": "pagi=05:00 WIB | siang=12:00 WIB | malam=19:00 WIB",
 
   "pagi": [
     {
-      "title": "5 Kebiasaan Pagi yang Mengubah Hidupmu",
-      "topic": "kebiasaan produktif di pagi hari, bangun lebih awal, olahraga ringan, sarapan sehat",
+      "title": "5 Mind-Blowing Facts About the Human Brain",
+      "topic": "fascinating neuroscience facts: the brain generates enough electricity to power a light bulb, neurons fire 200 times per second, the brain is 73% water, and memory is not stored in one place",
       "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["produktivitas", "lifestyle", "motivasi"],
+      "tags": ["science", "brain", "facts"],
       "ratio": "16:9"
     },
     {
-      "title": "Rahasia Orang Sukses di Pagi Hari",
-      "topic": "rutinitas pagi para CEO dan orang sukses dunia, journaling, meditasi, cold shower",
+      "title": "Crazy Facts About Space That Will Shock You",
+      "topic": "unbelievable space facts: a day on Venus is longer than its year, neutron stars spin 700 times per second, there are more stars than grains of sand on Earth, space smells like seared steak",
       "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["sukses", "motivasi", "lifestyle"],
+      "tags": ["space", "science", "facts"],
       "ratio": "16:9"
     },
     {
-      "title": "Sarapan Sehat Buat Tubuh Bertenaga",
-      "topic": "pilihan sarapan bergizi tinggi, makanan untuk energi pagi, hindari sarapan yang salah",
-      "style": "photorealistic",
-      "voice": "id-ID-GadisNeural",
-      "num_slides": 5,
-      "tags": ["kesehatan", "food", "lifestyle"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Tips Meditasi Pagi untuk Pikiran Jernih",
-      "topic": "teknik meditasi sederhana di pagi hari, manfaat mindfulness, cara mulai meditasi untuk pemula",
-      "style": "watercolor",
-      "voice": "id-ID-GadisNeural",
-      "num_slides": 6,
-      "tags": ["mindfulness", "kesehatan", "produktivitas"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Olahraga 10 Menit di Pagi Hari",
-      "topic": "gerakan olahraga ringan yang bisa dilakukan di rumah sebelum bekerja, peregangan, cardio singkat",
-      "style": "photorealistic",
-      "voice": "id-ID-ArdiNeural",
-      "num_slides": 6,
-      "tags": ["olahraga", "kesehatan", "produktivitas"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Cara Bangkit dari Ranjang dengan Semangat",
-      "topic": "tips mengatasi malas bangun pagi, trick psikologis agar semangat, sleep hygiene yang benar",
+      "title": "5 Facts About Animals That Seem Impossible",
+      "topic": "shocking animal facts: octopuses have 3 hearts and blue blood, mantis shrimp can punch with the force of a bullet, tardigrades can survive in outer space, crows remember human faces",
       "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
-      "num_slides": 5,
-      "tags": ["motivasi", "lifestyle", "produktivitas"],
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["animals", "nature", "facts"],
       "ratio": "16:9"
     },
     {
-      "title": "Power Morning Routine dalam 30 Menit",
-      "topic": "rutinitas pagi efektif hanya 30 menit, prioritas kegiatan pagi, time blocking di pagi hari",
+      "title": "Unbelievable Facts About the Deep Ocean",
+      "topic": "deep sea mysteries: 95% of the ocean is unexplored, creatures in the Mariana Trench survive crushing pressure, bioluminescent organisms create their own light, the ocean floor has mountains taller than Everest",
       "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["produktivitas", "time management", "lifestyle"],
+      "tags": ["ocean", "science", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Facts About Time That Will Bend Your Mind",
+      "topic": "mind-bending time facts: time moves slower near massive objects, the past present and future exist simultaneously according to physics, clocks on GPS satellites run faster than on Earth, Cleopatra lived closer to the Moon landing than to the pyramids",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["physics", "time", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Wild Facts About the Human Body You Never Knew",
+      "topic": "bizarre human body facts: your stomach gets a new lining every 3-4 days, bones are 4 times stronger than concrete, the human eye can detect a candle flame 14 miles away, you produce enough saliva in a lifetime to fill two swimming pools",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["biology", "body", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Historical Facts That Sound Fake But Are True",
+      "topic": "shocking history facts: ancient Romans used crushed mouse brains as toothpaste, Napoleon was once attacked by rabbits, Oxford University is older than the Aztec Empire, forks were once considered sacrilegious in Europe",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["history", "facts", "education"],
       "ratio": "16:9"
     }
   ],
 
   "siang": [
     {
-      "title": "Fakta Menakjubkan Teknologi AI Terbaru",
-      "topic": "perkembangan kecerdasan buatan terkini, GPT, Gemini, Claude, AI generatif yang mengubah industri",
+      "title": "5 Facts About Quantum Physics That Break Reality",
+      "topic": "quantum mechanics facts that defy common sense: particles can be in two places at once, observing a particle changes its behavior, quantum entanglement allows instant communication across any distance, Schrodinger's cat thought experiment explained",
       "style": "digital art",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["teknologi", "AI", "edukasi"],
+      "tags": ["physics", "quantum", "science"],
       "ratio": "16:9"
     },
     {
-      "title": "5 Fakta Unik Tentang Alam Semesta",
-      "topic": "fakta ilmiah menakjubkan tentang luar angkasa, lubang hitam, galaksi, bintang neutron",
+      "title": "Incredible Facts About the Universe's Size",
+      "topic": "universe scale facts: the observable universe is 93 billion light-years across, there are more galaxies than grains of sand on all Earth's beaches, light from the Sun takes 8 minutes to reach Earth, the Milky Way would take 100,000 years to cross at light speed",
       "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["sains", "astronomi", "edukasi"],
+      "tags": ["universe", "astronomy", "facts"],
       "ratio": "16:9"
     },
     {
-      "title": "Sejarah Internet yang Mengubah Dunia",
-      "topic": "asal usul internet, ARPANET, penemuan World Wide Web, evolusi internet dari 1969 hingga sekarang",
-      "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
-      "num_slides": 6,
-      "tags": ["sejarah", "teknologi", "edukasi"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Misteri Laut Dalam yang Belum Terpecahkan",
-      "topic": "makhluk laut dalam yang aneh, zona hadal, Palung Mariana, fenomena bioluminescence",
-      "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
-      "num_slides": 6,
-      "tags": ["sains", "alam", "misteri"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Cara Otak Manusia Bekerja Saat Belajar",
-      "topic": "neurosains belajar, cara memori terbentuk, teknik belajar berdasarkan ilmu otak, spaced repetition",
+      "title": "5 Facts About DNA That Will Blow Your Mind",
+      "topic": "DNA facts: if you uncoiled all the DNA in your body it would stretch to Pluto and back 17 times, humans share 60% DNA with bananas, DNA can store all internet data in a teaspoon, DNA degrades after 6.8 million years",
       "style": "digital art",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["sains", "edukasi", "otak"],
+      "tags": ["biology", "DNA", "science"],
       "ratio": "16:9"
     },
     {
-      "title": "10 Inovasi Teknologi yang Akan Mengubah 2025",
-      "topic": "teknologi masa depan yang sedang berkembang: quantum computing, robotik, bioteknologi, energi terbarukan",
-      "style": "3d render",
-      "voice": "id-ID-ArdiNeural",
+      "title": "Shocking Facts About Artificial Intelligence",
+      "topic": "AI facts that seem like science fiction: AI can detect cancer more accurately than doctors, an AI wrote a novel that almost won a literary prize, AI can predict earthquakes and solar flares, machines can now dream and hallucinate just like humans",
+      "style": "digital art",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["teknologi", "masa depan", "inovasi"],
+      "tags": ["AI", "technology", "science"],
       "ratio": "16:9"
     },
     {
-      "title": "Fakta Mengejutkan Tentang Uang dan Ekonomi",
-      "topic": "fakta ekonomi yang jarang diketahui, sejarah uang, cara kerja sistem perbankan, inflasi",
+      "title": "5 Facts About Black Holes That Defy Logic",
+      "topic": "black hole facts: time stops at the event horizon, a black hole the size of a coin would have the mass of Earth, black holes are not actually holes they are incredibly dense objects, Stephen Hawking proved black holes can slowly evaporate",
       "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["ekonomi", "finansial", "edukasi"],
+      "tags": ["black holes", "space", "physics"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Mind-Blowing Facts About Mathematics",
+      "topic": "math facts that seem impossible: there are more possible chess games than atoms in the observable universe, infinity comes in different sizes, 0.999 repeating equals exactly 1, the number googol has more digits than atoms in the universe",
+      "style": "digital art",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["math", "science", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Facts About Volcanoes That Will Surprise You",
+      "topic": "volcano facts: there are over 1,500 potentially active volcanoes on Earth, underwater volcanoes create new islands, volcanic lightning occurs in eruption clouds, the largest volcano in the solar system is on Mars and is 3 times taller than Everest",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["volcanoes", "geology", "facts"],
       "ratio": "16:9"
     }
   ],
 
   "malam": [
     {
-      "title": "Resep Makan Malam Sehat dalam 15 Menit",
-      "topic": "resep masakan cepat dan bergizi untuk makan malam, bahan sederhana, mudah dibuat",
-      "style": "photorealistic",
-      "voice": "id-ID-GadisNeural",
-      "num_slides": 6,
-      "tags": ["food", "resep", "lifestyle"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Tips Tidur Berkualitas untuk Istirahat Maksimal",
-      "topic": "cara meningkatkan kualitas tidur, sleep hygiene, suhu kamar ideal, ritme sirkadian",
-      "style": "watercolor",
-      "voice": "id-ID-GadisNeural",
-      "num_slides": 6,
-      "tags": ["kesehatan", "tidur", "lifestyle"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Cara Melepas Stres Setelah Kerja Seharian",
-      "topic": "teknik relaksasi malam hari, stretching, mandi air hangat, aromaterapi, journaling malam",
-      "style": "watercolor",
-      "voice": "id-ID-GadisNeural",
-      "num_slides": 6,
-      "tags": ["kesehatan", "wellness", "lifestyle"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "5 Kebiasaan Malam yang Bikin Hidupmu Lebih Baik",
-      "topic": "rutinitas malam positif, refleksi harian, membaca buku, persiapan hari esok, digital detox",
+      "title": "5 Creepy Facts About the Human Body at Night",
+      "topic": "what happens to your body while you sleep: your brain removes toxins, you grow slightly taller, your body temperature drops, you can have up to 7 dreams per night, sleep paralysis is your brain keeping you from acting out dreams",
       "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["produktivitas", "lifestyle", "motivasi"],
+      "tags": ["sleep", "biology", "facts"],
       "ratio": "16:9"
     },
     {
-      "title": "Mindfulness Malam: Lepaskan Semua Beban",
-      "topic": "teknik mindfulness dan meditasi sebelum tidur, body scan meditation, breathing exercise 4-7-8",
-      "style": "watercolor",
-      "voice": "id-ID-GadisNeural",
-      "num_slides": 5,
-      "tags": ["mindfulness", "kesehatan", "relaksasi"],
-      "ratio": "16:9"
-    },
-    {
-      "title": "Review Harian: Cara Orang Sukses Evaluasi Hari",
-      "topic": "metode daily review, menulis jurnal refleksi, lesson learned, gratitude practice sebelum tidur",
+      "title": "Unbelievable Facts About Dreams and the Brain",
+      "topic": "dream science facts: blind people dream with other senses, you cannot dream of a face you have never seen, some people dream in black and white, lucid dreaming can be trained, dreams can solve complex problems and inspire great inventions",
       "style": "cinematic",
-      "voice": "id-ID-ArdiNeural",
+      "voice": "en-US-AndrewNeural",
       "num_slides": 6,
-      "tags": ["produktivitas", "sukses", "motivasi"],
+      "tags": ["dreams", "neuroscience", "facts"],
       "ratio": "16:9"
     },
     {
-      "title": "Cemilan Malam yang Sehat dan Tidak Bikin Gemuk",
-      "topic": "pilihan camilan rendah kalori untuk malam hari, buah-buahan, kacang-kacangan, yogurt, dark chocolate",
-      "style": "photorealistic",
-      "voice": "id-ID-GadisNeural",
-      "num_slides": 5,
-      "tags": ["food", "kesehatan", "diet"],
+      "title": "5 Facts About Stars That Sound Like Fantasy",
+      "topic": "star facts: the sun is so large that 1.3 million Earths could fit inside, some stars are older than the universe appears to allow, magnetars have magnetic fields so strong they could erase credit cards from halfway to the Moon, stars can orbit each other",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["stars", "astronomy", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Shocking Facts About Ancient Civilizations",
+      "topic": "ancient world facts: ancient Egyptians slept on stone pillows, the Roman Empire had a welfare system, ancient Greeks believed the brain was for cooling the blood, the Antikythera mechanism is a 2000-year-old analog computer",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["history", "ancient", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Facts About Light That Will Change How You See",
+      "topic": "light and optics facts: light slows down when passing through glass, a photon takes 100,000 years to travel from the Sun's core to its surface but only 8 minutes to reach Earth, you can see 2.5 million light-years with the naked eye, darkness travels faster than light",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["light", "physics", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "Mind-Bending Facts About Parallel Universes",
+      "topic": "multiverse theory facts: the many-worlds interpretation suggests every quantum event creates a new universe, there may be infinite copies of you making different choices, string theory requires 11 dimensions, cosmic inflation suggests our universe is one of countless bubbles",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["multiverse", "physics", "facts"],
+      "ratio": "16:9"
+    },
+    {
+      "title": "5 Facts About Viruses That Are Truly Terrifying",
+      "topic": "virus facts: viruses are not technically alive yet they are the most abundant entity on Earth, there are viruses that infect other viruses, 8% of human DNA comes from ancient viruses, bacteriophage viruses kill more bacteria per day than all antibiotics combined",
+      "style": "cinematic",
+      "voice": "en-US-AndrewNeural",
+      "num_slides": 6,
+      "tags": ["viruses", "biology", "science"],
       "ratio": "16:9"
     }
   ]
