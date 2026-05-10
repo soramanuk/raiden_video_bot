@@ -562,7 +562,9 @@ async def do_render(job_id: str, req: RenderRequest):
                 fallback_slides.append(i + 1)
 
             duration = await get_audio_duration(str(audio_path))
+            _img_logger.info(f"Slide {i+1} audio duration raw: {duration:.2f}s")
             duration = max(duration + 1.5, slide.duration)
+            _img_logger.info(f"Slide {i+1} duration final: {duration:.2f}s")
             inputs_for_ffmpeg.append({"img": str(img_path), "audio": str(audio_path), "duration": duration})
 
             _img_logger.debug(f"Slide {i+1}/{total} siap")
